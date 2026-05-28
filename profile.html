@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>الملف الشخصي | Ramz-X</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc; --surface: #ffffff; --surface2: #f1f5f9;
+            --text: #0f172a; --text2: #475569; --text3: #94a3b8;
+            --border: #cbd5e1; --accent: #ff0050; --accent2: #3b82f6;
+            --radius: 16px; --shadow: 0 4px 24px rgba(0,0,0,0.06);
+        }
+        body.dark {
+            --bg: #000; --surface: #111; --surface2: #1a1a1a;
+            --text: #ffffff; --text2: #aaa; --text3: #777;
+            --border: #2c2c2c; --shadow: 0 4px 24px rgba(0,0,0,0.3);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: var(--bg); font-family: 'Cairo', sans-serif; min-height: 100vh;
+            padding-bottom: 80px; color: var(--text); transition: background 0.3s;
+        }
+        .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+        .header {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;
+        }
+        .back-btn { background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; }
+        .header h1 { font-size: 20px; font-weight: 700; }
+        .profile-card {
+            background: var(--surface); border-radius: var(--radius); padding: 24px;
+            box-shadow: var(--shadow); border: 1px solid var(--border); text-align: center; margin-bottom: 20px;
+        }
+        .avatar-img {
+            width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
+            border: 4px solid var(--accent); background: var(--surface2);
+        }
+        .profile-name { font-size: 1.5rem; font-weight: 800; margin: 12px 0 4px; }
+        .profile-username { color: var(--text2); font-size: 14px; margin-bottom: 12px; }
+        .profile-bio { color: var(--text2); font-size: 14px; margin-bottom: 16px; line-height: 1.5; }
+        .stats { display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; }
+        .stat-number { font-size: 1.3rem; font-weight: 800; }
+        .stat-label { font-size: 12px; color: var(--text3); }
+        .badges-section { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+        .badge-icon {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--surface2);
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+            cursor: pointer; position: relative; transition: 0.2s;
+        }
+        .badge-icon:hover { transform: scale(1.15); background: var(--accent); color: #fff; }
+        .badge-tooltip {
+            position: absolute; bottom: 110%; background: var(--text); color: var(--bg);
+            padding: 4px 8px; border-radius: 8px; font-size: 11px; white-space: nowrap;
+            display: none; pointer-events: none;
+        }
+        .badge-icon:hover .badge-tooltip { display: block; }
+        .highlights { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+        .highlight-item { width: 64px; text-align: center; cursor: pointer; }
+        .highlight-ring {
+            width: 56px; height: 56px; border-radius: 50%; padding: 2px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2)); margin: 0 auto 4px;
+        }
+        .highlight-ring img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--surface); }
+        .highlight-name { font-size: 11px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; max-width: 64px; white-space: nowrap; }
+        .add-highlight-btn .highlight-ring {
+            background: var(--surface2); border: 2px dashed var(--accent);
+            display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--accent);
+        }
+        .profile-actions { display: flex; justify-content: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+        .btn {
+            padding: 10px 24px; border-radius: 30px; font-weight: 700; font-size: 13px;
+            border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+            transition: 0.2s; font-family: 'Cairo', sans-serif; text-decoration: none;
+        }
+        .btn-primary { background: var(--accent2); color: #fff; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { border-color: var(--accent2); color: var(--accent2); }
+        .tabs {
+            display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px;
+            overflow-x: auto; scrollbar-width: none;
+        }
+        .tab {
+            flex: 1 0 auto; padding: 12px 16px; text-align: center; background: none;
+            border: none; color: var(--text2); font-weight: 600; cursor: pointer;
+            font-size: 14px; border-bottom: 2px solid transparent; transition: 0.2s; white-space: nowrap;
+        }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .content-area { min-height: 200px; }
+        .posts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        .post-thumb { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; background: var(--surface2); cursor: pointer; }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text3); }
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal.open { visibility: visible; opacity: 1; }
+        .modal-content {
+            background: var(--surface); border-radius: var(--radius); width: 90%;
+            max-width: 400px; padding: 24px; max-height: 80vh; overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 16px; }
+        .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text); }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; margin-bottom: 4px; font-weight: 600; color: var(--text2); }
+        .input-group input, .input-group textarea {
+            width: 100%; padding: 10px; border-radius: 12px; border: 1px solid var(--border);
+            background: var(--surface2); color: var(--text); font-family: 'Cairo', sans-serif;
+        }
+        .report-table { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
+        .report-table td { padding: 12px; border-bottom: 1px solid var(--border); }
+        .report-table td:first-child { font-weight: 600; color: var(--text2); }
+        .report-value { font-weight: 700; text-align: left; }
+        .bottom-footer {
+            position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface);
+            display: flex; justify-content: space-around; padding: 8px 0;
+            border-top: 1px solid var(--border); z-index: 30;
+        }
+        .footer-button { background: none; border: none; text-align: center; cursor: pointer; color: var(--text2); text-decoration: none; }
+        .footer-button.active { color: var(--accent); }
+        .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+        .label { font-size: 11px; }
+        .social-links { display: flex; gap: 16px; justify-content: center; margin: 12px 0 6px; }
+        .social-links a { color: var(--text2); font-size: 20px; transition: 0.2s; }
+        .social-links a:hover { color: var(--accent); }
+        .unique-url { font-size: 12px; color: var(--text3); margin-top: 4px; }
+        .guest-badge {
+            background: #f59e0b; padding: 4px 12px; border-radius: 20px; font-size: 12px;
+            display: inline-block; margin-top: 8px; color: #000; font-weight: bold;
+        }
+        .settings-panel { background: var(--surface); border-radius: var(--radius); padding: 16px; margin-top: 16px; border: 1px solid var(--border); }
+        .settings-subtabs {
+            display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+        }
+        .settings-subtab {
+            padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border);
+            background: var(--surface2); color: var(--text2); font-weight: 600; cursor: pointer;
+            font-size: 13px; transition: 0.2s; white-space: nowrap;
+        }
+        .settings-subtab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    </style>
+</head>
+<body class="dark">
+
+<div class="container">
+    <div class="header">
+        <button class="back-btn" onclick="window.location.href='home.html'"><i class="fas fa-arrow-right"></i></button>
+        <h1>الملف الشخصي</h1>
+        <div></div>
+    </div>
+
+    <div class="profile-card">
+        <img id="avatarImg" class="avatar-img" src="https://randomuser.me/api/portraits/lego/1.jpg" alt="الصورة الرمزية" loading="lazy">
+        <div class="profile-name" id="profileName">...</div>
+        <div class="profile-username" id="profileUsername">@...</div>
+        <div class="profile-bio" id="profileBio"></div>
+        <div id="guestBadgeContainer"></div>
+        <div class="badges-section" id="badgesContainer"></div>
+        <div class="stats">
+            <div class="stat-item"><div class="stat-number" id="countPosts">0</div><div class="stat-label">منشور</div></div>
+            <div class="stat-item"><div class="stat-number" id="countFollowers">0</div><div class="stat-label">متابع</div></div>
+            <div class="stat-item"><div class="stat-number" id="countFollowing">0</div><div class="stat-label">يتابع</div></div>
+        </div>
+        <div class="social-links" id="socialLinks"></div>
+        <div class="unique-url" id="uniqueUrl"></div>
+        <div class="profile-actions">
+            <button class="btn btn-primary" id="editProfileBtn"><i class="fas fa-pen"></i> تعديل</button>
+            <button class="btn btn-outline" id="shareProfileBtn"><i class="fas fa-share-alt"></i> مشاركة</button>
+            <a href="network.html" class="btn btn-outline"><i class="fas fa-users"></i> شبكتي</a>
+            <a href="shop.html" class="btn btn-outline" id="shopBtn"><i class="fas fa-store"></i> متجري</a>
+        </div>
+    </div>
+
+    <div class="highlights" id="highlightsContainer"></div>
+
+    <div class="tabs" id="profileTabs">
+        <button class="tab active" data-tab="posts">منشوراتي</button>
+        <button class="tab" data-tab="favorites">المفضلات</button>
+        <button class="tab" data-tab="network">شبكتي</button>
+        <button class="tab" data-tab="settings">الإعدادات</button>
+        <button class="tab" data-tab="reports">تقاريري</button>
+    </div>
+
+    <div class="content-area" id="profileContent"></div>
+</div>
+
+<div class="bottom-footer">
+    <a href="home.html" class="footer-button"><i class="fas fa-home icon"></i><div class="label">الرئيسية</div></a>
+    <a href="explore.html" class="footer-button"><i class="fas fa-compass icon"></i><div class="label">استكشاف</div></a>
+    <a href="create-post.html" class="footer-button"><i class="fas fa-plus-circle icon"></i><div class="label">إنشاء</div></a>
+    <a href="inbox.html" class="footer-button"><i class="fas fa-inbox icon"></i><div class="label">صندوق الوارد</div></a>
+    <a href="profile.html" class="footer-button active"><i class="fas fa-user icon"></i><div class="label">ملفي</div></a>
+</div>
+
+<div class="modal" id="editModal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>تعديل الملف</h3><button class="modal-close" onclick="closeModal('editModal')">&times;</button></div>
+        <div class="input-group"><label>الاسم الكامل</label><input type="text" id="editFullName"></div>
+        <div class="input-group"><label>السيرة الذاتية</label><textarea id="editBio" rows="3"></textarea></div>
+        <div class="input-group"><label>الموقع الإلكتروني</label><input type="text" id="editWebsite"></div>
+        <div class="input-group"><label>الصورة الرمزية</label>
+            <div class="avatar-upload" style="display:flex;align-items:center;gap:12px;">
+                <img id="avatarPreviewSmall" class="avatar-preview-small" src="https://randomuser.me/api/portraits/lego/1.jpg" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">
+                <label class="file-input-label" style="background:var(--surface2);padding:8px 16px;border-radius:30px;cursor:pointer;font-size:12px;"><i class="fas fa-upload"></i> رفع صورة<input type="file" id="avatarUpload" accept="image/*" style="display:none;"></label>
+            </div>
+        </div>
+        <button class="btn btn-primary" id="saveProfileBtn" style="width:100%;">حفظ</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="common.js"></script>
+<script>
+    let currentUser = null;
+    let currentTab = 'posts';
+    let settingsSubtab = 'profile'; // التبويب الفرعي داخل الإعدادات
+
+    (async () => {
+        await initDB();
+        currentUser = await checkSession();
+        if (!currentUser) { window.location.href='auth.html'; return; }
+        renderProfile();
+        loadHighlights();
+        loadBadges();
+        switchTab('posts');
+        setupEventListeners();
+        initLazyImages();
+    })();
+
+    function initLazyImages() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) { img.src = img.dataset.src; img.removeAttribute('data-src'); }
+                    observer.unobserve(img);
+                }
+            });
+        });
+        document.querySelectorAll('img[data-src]').forEach(img => observer.observe(img));
+    }
+
+    function sanitizeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]);
+    }
+
+    function sanitizeInput(str) {
+        if (typeof str !== 'string') return '';
+        return str.replace(/[&<>"'/]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;' })[m] || m);
+    }
+
+    function isValidURL(url) { try { new URL(url); return true; } catch { return false; } }
+
+    async function renderProfile() {
+        document.getElementById('profileName').textContent = sanitizeHTML(currentUser.full_name || currentUser.username);
+        document.getElementById('profileUsername').textContent = '@' + sanitizeHTML(currentUser.unique_name || currentUser.username);
+        document.getElementById('profileBio').textContent = sanitizeHTML(currentUser.bio || 'مرحباً في عالم Ramz-X');
+        document.getElementById('avatarImg').src = currentUser.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg';
+        document.getElementById('uniqueUrl').textContent = '🔗 الرابط الفريد: /user/' + (currentUser.unique_name || currentUser.username);
+
+        const social = currentUser.social || {};
+        const socialIcons = { email:'fa-envelope', facebook:'fa-facebook', twitter:'fa-twitter', instagram:'fa-instagram' };
+        let socialHtml = '';
+        for (let [p, v] of Object.entries(social)) {
+            if (v) socialHtml += `<a href="${p==='email'?'mailto:'+v:v}" target="_blank"><i class="fab ${socialIcons[p]||'fa-link'}"></i></a>`;
+        }
+        document.getElementById('socialLinks').innerHTML = socialHtml || '';
+
+        document.getElementById('guestBadgeContainer').innerHTML = currentUser.is_guest ? `<div class="guest-badge"><i class="fas fa-clock"></i> حساب تجريبي</div>` : '';
+
+        const { count: posts } = await supabase.from('posts').select('*',{count:'exact',head:true}).eq('author_id',currentUser.id);
+        const { count: followers } = await supabase.from('follows').select('*',{count:'exact',head:true}).eq('following_id',currentUser.id);
+        const { count: following } = await supabase.from('follows').select('*',{count:'exact',head:true}).eq('follower_id',currentUser.id);
+        document.getElementById('countPosts').textContent = posts||0;
+        document.getElementById('countFollowers').textContent = followers||0;
+        document.getElementById('countFollowing').textContent = following||0;
+        document.getElementById('shopBtn').href = `shop.html?user=${currentUser.id}`;
+    }
+
+    async function loadHighlights() {
+        const { data: diaries } = await supabase.from('diaries').select('*').eq('user_id',currentUser.id).eq('pinned',true).order('created_at',{ascending:false}).limit(10);
+        let html = `<div class="highlight-item add-highlight-btn" onclick="addHighlight()"><div class="highlight-ring"><i class="fas fa-plus"></i></div><div class="highlight-name">جديد</div></div>`;
+        (diaries||[]).forEach(d => {
+            html += `<div class="highlight-item" onclick="viewHighlight('${d.id}')"><div class="highlight-ring"><img src="${d.cover_url||'https://via.placeholder.com/50'}" loading="lazy"></div><div class="highlight-name">${sanitizeHTML(d.title?.substring(0,8)||'يومية')}</div></div>`;
+        });
+        document.getElementById('highlightsContainer').innerHTML = html;
+    }
+
+    function addHighlight() {
+        const title = sanitizeInput(prompt('عنوان اليومية:')||'');
+        if (!title) return;
+        supabase.from('diaries').insert({ user_id:currentUser.id, title, pinned:true, created_at:new Date().toISOString() }).then(() => loadHighlights());
+    }
+
+    function viewHighlight(id) { window.location.href = `story-viewer.html?diary=${id}`; }
+
+    async function loadBadges() {
+        const { count: posts } = await supabase.from('posts').select('*',{count:'exact',head:true}).eq('author_id',currentUser.id);
+        const { count: followers } = await supabase.from('follows').select('*',{count:'exact',head:true}).eq('following_id',currentUser.id);
+        const pc = posts||0, fc = followers||0;
+        const badges = [];
+        if(pc>=1) badges.push({icon:'✍️',label:'أول منشور'});
+        if(pc>=10) badges.push({icon:'📝',label:'10 منشورات'});
+        if(pc>=50) badges.push({icon:'📚',label:'50 منشور'});
+        if(fc>=10) badges.push({icon:'👥',label:'10 متابعين'});
+        if(fc>=100) badges.push({icon:'🌟',label:'100 متابع'});
+        document.getElementById('badgesContainer').innerHTML = badges.map(b => `<div class="badge-icon">${b.icon}<span class="badge-tooltip">${b.label}</span></div>`).join('') || '<span style="font-size:12px;color:var(--text3);">لا شارات بعد</span>';
+    }
+
+    async function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+        const content = document.getElementById('profileContent');
+        content.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-pulse"></i></div>';
+
+        if (tab === 'posts') {
+            const { data } = await supabase.from('posts').select('image,id').eq('author_id',currentUser.id).eq('hidden',false).order('created_at',{ascending:false});
+            if (!data?.length) { content.innerHTML='<div class="empty-state"><i class="far fa-newspaper"></i><p>لا منشورات</p></div>'; return; }
+            content.innerHTML = '<div class="posts-grid">' + data.map(p => `<img data-src="${p.image||'https://via.placeholder.com/200'}" class="post-thumb" onclick="viewPost('${p.id}')">`).join('') + '</div>';
+            initLazyImages();
+        } else if (tab === 'favorites') {
+            const { data: favs } = await supabase.from('favorites').select('post_id').eq('user_id',currentUser.id);
+            if (!favs?.length) { content.innerHTML='<div class="empty-state"><i class="far fa-star"></i><p>لا مفضلات</p></div>'; return; }
+            const { data: posts } = await supabase.from('posts').select('*').in('id',favs.map(f=>f.post_id));
+            content.innerHTML = '<div class="posts-grid">' + (posts||[]).map(p => `<img data-src="${p.image||'https://via.placeholder.com/200'}" class="post-thumb" onclick="viewPost('${p.id}')">`).join('') + '</div>';
+            initLazyImages();
+        } else if (tab === 'network') {
+            await loadNetworkTab();
+        } else if (tab === 'settings') {
+            renderSettingsTab();
+        } else if (tab === 'reports') {
+            await renderReportsTab();
+        }
+    }
+
+    function renderSettingsTab() {
+        const container = document.getElementById('profileContent');
+        container.innerHTML = `
+            <div class="settings-panel">
+                <div class="settings-subtabs">
+                    <button class="settings-subtab ${settingsSubtab==='profile'?'active':''}" data-subtab="profile">الملف الشخصي</button>
+                    <button class="settings-subtab ${settingsSubtab==='privacy'?'active':''}" data-subtab="privacy">سياسة الخصوصية</button>
+                    <button class="settings-subtab ${settingsSubtab==='terms'?'active':''}" data-subtab="terms">شروط الاستخدام</button>
+                    <button class="settings-subtab ${settingsSubtab==='notifications'?'active':''}" data-subtab="notifications">الإشعارات</button>
+                    <button class="settings-subtab ${settingsSubtab==='blocked'?'active':''}" data-subtab="blocked">الحسابات المحظورة</button>
+                    <button class="settings-subtab ${settingsSubtab==='data'?'active':''}" data-subtab="data">تنزيل البيانات</button>
+                    <button class="settings-subtab ${settingsSubtab==='delete'?'active':''}" data-subtab="delete">حذف الحساب</button>
+                </div>
+                <div id="settingsSubContent"></div>
+            </div>`;
+        renderSettingsSubContent();
+        document.querySelectorAll('.settings-subtab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                settingsSubtab = btn.dataset.subtab;
+                renderSettingsTab();
+            });
+        });
+    }
+
+    function renderSettingsSubContent() {
+        const sub = document.getElementById('settingsSubContent');
+        if (!sub) return;
+        switch (settingsSubtab) {
+            case 'profile':
+                sub.innerHTML = getProfileEditForm();
+                bindProfileSave();
+                break;
+            case 'privacy':
+                sub.innerHTML = `<iframe src="privacy.html" style="width:100%;height:300px;border:1px solid var(--border);border-radius:12px;"></iframe>`;
+                break;
+            case 'terms':
+                sub.innerHTML = `<iframe src="terms.html" style="width:100%;height:300px;border:1px solid var(--border);border-radius:12px;"></iframe>`;
+                break;
+            case 'notifications':
+                sub.innerHTML = `<p>إعدادات الإشعارات (سيتم تطويرها)</p>`;
+                break;
+            case 'blocked':
+                sub.innerHTML = `<div id="blockedList"></div>`;
+                loadBlockedUsers();
+                break;
+            case 'data':
+                sub.innerHTML = `<button class="btn btn-primary" onclick="exportAccountData()"><i class="fas fa-download"></i> تصدير بياناتي</button>`;
+                break;
+            case 'delete':
+                sub.innerHTML = `<button class="btn btn-primary" style="background:#dc2626;" onclick="deleteAccount()">حذف الحساب نهائياً</button>`;
+                break;
+        }
+    }
+
+    function getProfileEditForm() {
+        const user = currentUser;
+        return `
+            <div class="input-group"><label>الاسم الكامل</label><input type="text" id="editFullNameSettings" value="${sanitizeHTML(user.full_name||'')}"></div>
+            <div class="input-group"><label>السيرة الذاتية</label><textarea id="editBioSettings" rows="3">${sanitizeHTML(user.bio||'')}</textarea></div>
+            <div class="input-group"><label>الرابط الفريد</label><input type="text" id="editUniqueNameSettings" value="${sanitizeHTML(user.unique_name||'')}"></div>
+            <button class="btn btn-primary" id="saveSettingsBtn">حفظ</button>`;
+    }
+
+    function bindProfileSave() {
+        const btn = document.getElementById('saveSettingsBtn');
+        if (!btn) return;
+        btn.onclick = async () => {
+            const updates = {
+                full_name: sanitizeInput(document.getElementById('editFullNameSettings').value),
+                bio: sanitizeInput(document.getElementById('editBioSettings').value),
+                unique_name: sanitizeInput(document.getElementById('editUniqueNameSettings').value)
+            };
+            await supabase.from('users').update(updates).eq('id',currentUser.id);
+            currentUser = {...currentUser,...updates};
+            localStorage.setItem('currentUser',JSON.stringify(currentUser));
+            renderProfile();
+            alert('تم الحفظ');
+        };
+    }
+
+    async function loadBlockedUsers() {
+        const { data } = await supabase.from('blocks').select('blocked_id, users:blocked_id (id, username, avatar)').eq('blocker_id',currentUser.id);
+        const list = document.getElementById('blockedList');
+        if (!data?.length) { list.innerHTML = '<p>لا يوجد محظورون</p>'; return; }
+        list.innerHTML = data.map(b => `<div style="display:flex;align-items:center;gap:10px;padding:8px;"><img src="${b.users?.avatar||'https://via.placeholder.com/30'}" style="width:30px;height:30px;border-radius:50%;"><span>${b.users?.username}</span><button onclick="unblockUser('${b.blocked_id}')">رفع الحظر</button></div>`).join('');
+    }
+
+    async function unblockUser(uid) { await supabase.from('blocks').delete().eq('blocker_id',currentUser.id).eq('blocked_id',uid); renderSettingsTab(); }
+
+    async function deleteAccount() {
+        if (confirm('هل أنت متأكد؟ سيتم حذف حسابك نهائياً.')) {
+            await supabase.from('users').delete().eq('id',currentUser.id);
+            await supabase.auth.signOut();
+            localStorage.clear();
+            window.location.href='auth.html';
+        }
+    }
+
+    function exportAccountData() {
+        const blob = new Blob([JSON.stringify(currentUser, null, 2)], {type:'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `ramz-x-${currentUser.username}.json`;
+        a.click();
+    }
+
+    async function loadNetworkTab() {
+        const container = document.getElementById('profileContent');
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-pulse"></i></div>';
+        try {
+            const { data: followers } = await supabase.from('follows').select('follower_id, users:follower_id (id, username, full_name, avatar)').eq('following_id',currentUser.id).limit(5);
+            const { data: following } = await supabase.from('follows').select('following_id, users:following_id (id, username, full_name, avatar)').eq('follower_id',currentUser.id).limit(5);
+            const { data: blocked } = await supabase.from('blocks').select('blocked_id, users:blocked_id (id, username, full_name, avatar)').eq('blocker_id',currentUser.id).limit(5);
+            let html = '<h3>المتابِعون</h3>'+renderUserList(followers,'follower')+'<h3>المتابَعون</h3>'+renderUserList(following,'following')+'<h3>المحظورون</h3>'+renderUserList(blocked,'blocked')+'<div style="text-align:center;margin-top:16px;"><a href="network.html" class="btn btn-outline">عرض شبكتي كاملة</a></div>';
+            container.innerHTML = html;
+        } catch(e) { container.innerHTML = '<div class="empty-state"><p>حدث خطأ</p></div>'; }
+    }
+
+    function renderUserList(list, type) {
+        if (!list?.length) return '<p style="color:var(--text3);">لا يوجد</p>';
+        return list.map(item => {
+            const u = item.users; if(!u) return '';
+            const act = type==='follower'?`<button class="btn btn-sm btn-outline" onclick="removeFollower('${u.id}')">إزالة</button>`:type==='following'?`<button class="btn btn-sm btn-outline" onclick="unfollowUser('${u.id}')">إلغاء المتابعة</button>`:`<button class="btn btn-sm btn-primary" onclick="unblockUser('${u.id}')">رفع الحظر</button>`;
+            return `<div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface);border-radius:12px;border:1px solid var(--border);margin-bottom:8px;"><img src="${u.avatar||'https://via.placeholder.com/30'}" style="width:36px;height:36px;border-radius:50%;" loading="lazy"><div style="flex:1;font-weight:600;">${sanitizeHTML(u.full_name||u.username)}</div>${act}</div>`;
+        }).join('');
+    }
+
+    async function renderReportsTab() {
+        const container = document.getElementById('profileContent');
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-pulse"></i></div>';
+        try {
+            const { count: posts } = await supabase.from('posts').select('*',{count:'exact',head:true}).eq('author_id',currentUser.id);
+            const { count: comments } = await supabase.from('comments').select('*',{count:'exact',head:true}).eq('user_id',currentUser.id);
+            const { count: likes } = await supabase.from('likes').select('*',{count:'exact',head:true}).eq('user_id',currentUser.id);
+            const { count: followers } = await supabase.from('follows').select('*',{count:'exact',head:true}).eq('following_id',currentUser.id);
+            const { count: following } = await supabase.from('follows').select('*',{count:'exact',head:true}).eq('follower_id',currentUser.id);
+            const age = currentUser.created_at ? Math.floor((Date.now()-new Date(currentUser.created_at))/(86400000))+' يوم' : 'غير معروف';
+            container.innerHTML = `<h3>تقارير حسابي</h3>
+                <table class="report-table">
+                    <tr><td>المنشورات</td><td class="report-value">${posts||0}</td></tr>
+                    <tr><td>التعليقات</td><td class="report-value">${comments||0}</td></tr>
+                    <tr><td>الإعجابات</td><td class="report-value">${likes||0}</td></tr>
+                    <tr><td>المتابعون</td><td class="report-value">${followers||0}</td></tr>
+                    <tr><td>أتـبع</td><td class="report-value">${following||0}</td></tr>
+                    <tr><td>عمر الحساب</td><td class="report-value">${age}</td></tr>
+                </table>
+                <button class="btn btn-primary" onclick="exportAccountData()"><i class="fas fa-download"></i> تصدير بياناتي (JSON)</button>`;
+        } catch(e) { container.innerHTML = '<div class="empty-state"><p>حدث خطأ</p></div>'; }
+    }
+
+    async function removeFollower(uid) { await supabase.from('follows').delete().eq('follower_id',uid).eq('following_id',currentUser.id); loadNetworkTab(); }
+    async function unfollowUser(uid) { await supabase.from('follows').delete().eq('follower_id',currentUser.id).eq('following_id',uid); loadNetworkTab(); }
+    function viewPost(id) { window.location.href = `home.html?post=${id}`; }
+
+    function setupEventListeners() {
+        document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', ()=> switchTab(t.dataset.tab)));
+        document.getElementById('editProfileBtn').addEventListener('click', () => {
+            document.getElementById('editFullName').value = currentUser.full_name || '';
+            document.getElementById('editBio').value = currentUser.bio || '';
+            document.getElementById('editWebsite').value = currentUser.website || '';
+            document.getElementById('avatarPreviewSmall').src = currentUser.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg';
+            document.getElementById('editModal').classList.add('open');
+        });
+        document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+            const updates = {
+                full_name: sanitizeInput(document.getElementById('editFullName').value),
+                bio: sanitizeInput(document.getElementById('editBio').value),
+                website: isValidURL(document.getElementById('editWebsite').value) ? document.getElementById('editWebsite').value : null,
+                avatar: document.getElementById('avatarPreviewSmall').src
+            };
+            await supabase.from('users').update(updates).eq('id',currentUser.id);
+            currentUser = {...currentUser,...updates};
+            localStorage.setItem('currentUser',JSON.stringify(currentUser));
+            renderProfile();
+            closeModal('editModal');
+        });
+        document.getElementById('avatarUpload').onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) { const r = new FileReader(); r.onload = ev => document.getElementById('avatarPreviewSmall').src = ev.target.result; r.readAsDataURL(file); }
+        };
+        document.getElementById('shareProfileBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(`${location.origin}/public-profile.html?user=${currentUser.id}`);
+            alert('تم نسخ الرابط');
+        });
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    if (localStorage.getItem('darkMode') === 'false') document.body.classList.add('light');
+    else document.body.classList.add('dark');
+</script>
+</body>
+  </html>
