@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>Ramz-X | الرئيسية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* نفس الـ CSS السابق دون تغيير */
+        :root {
+            --bg-primary: #000000;
+            --bg-card: #111111;
+            --bg-input: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --text-muted: #777777;
+            --accent: #ff0050;
+            --accent-blue: #3b82f6;
+            --accent-orange: #ff7b00;
+            --border: #2c2c2c;
+            --radius: 1rem;
+        }
+
+        body.light {
+            --bg-primary: #f5f5f5;
+            --bg-card: #ffffff;
+            --bg-input: #e8e8e8;
+            --text-primary: #111111;
+            --text-secondary: #444444;
+            --text-muted: #666666;
+            --border: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-primary);
+            font-family: 'Cairo', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 70px;
+            color: var(--text-primary);
+            transition: background 0.3s, color 0.3s;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-primary);
+            border-bottom: 0.5px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            cursor: pointer;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-input);
+        }
+
+        .stories-row {
+            display: flex;
+            gap: 12px;
+            padding: 12px 8px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .stories-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .story-item {
+            flex: 0 0 auto;
+            width: 68px;
+            text-align: center;
+            cursor: pointer;
+            scroll-snap-align: start;
+        }
+
+        .story-ring {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(45deg, var(--accent), var(--accent-blue), var(--accent-orange));
+            margin: 0 auto 4px;
+        }
+
+        .story-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--bg-primary);
+        }
+
+        .story-username {
+            font-size: 10px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 68px;
+        }
+
+        .story-add .story-ring {
+            background: var(--bg-input);
+            border: 2px dashed var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--accent);
+        }
+
+        .feed-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 8px;
+        }
+
+        .post-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: 0.2s;
+            animation: fadeInUp 0.4s ease forwards;
+            opacity: 0;
+            position: relative;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .post-card:nth-child(1) { animation-delay: 0s; }
+        .post-card:nth-child(2) { animation-delay: 0.05s; }
+        .post-card:nth-child(3) { animation-delay: 0.1s; }
+        .post-card:nth-child(4) { animation-delay: 0.15s; }
+        .post-card:nth-child(5) { animation-delay: 0.2s; }
+
+        .post-card:active {
+            transform: scale(0.99);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            cursor: pointer;
+        }
+
+        .author-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+            background: var(--bg-input);
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+
+        .author-avatar:hover {
+            border-color: var(--accent);
+        }
+
+        .author-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .author-name-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .author-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-primary);
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+
+        .verified-badge {
+            color: var(--accent-blue);
+            font-size: 11px;
+        }
+
+        .follow-btn {
+            background: rgba(255, 0, 80, 0.15);
+            border: 1px solid var(--accent);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 11px;
+            cursor: pointer;
+            color: var(--accent);
+            font-weight: 700;
+            transition: 0.2s;
+            white-space: nowrap;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .follow-btn.following {
+            background: var(--accent);
+            color: white;
+        }
+
+        .follow-btn:active {
+            transform: scale(0.95);
+        }
+
+        .post-menu-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .post-menu-btn:hover {
+            background: var(--bg-input);
+        }
+
+        .post-date {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+            cursor: pointer;
+            background: var(--bg-input);
+            transition: 0.3s;
+        }
+
+        .post-image:active {
+            opacity: 0.9;
+        }
+
+        .post-content {
+            padding: 12px;
+        }
+
+        .post-title {
+            font-weight: 800;
+            font-size: 18px;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .category-badge {
+            font-size: 10px;
+            background: var(--bg-input);
+            padding: 3px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-right: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .category-badge:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .post-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 6px;
+            max-height: 80px;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .post-text.expanded {
+            max-height: none;
+        }
+
+        .more-btn {
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+            transition: 0.2s;
+        }
+
+        .more-btn:hover {
+            color: white;
+        }
+
+        .hashtag {
+            color: var(--accent);
+            font-size: 12px;
+            margin-top: 4px;
+            cursor: pointer;
+            background: rgba(255, 0, 80, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            transition: 0.2s;
+        }
+
+        .hashtag:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .actions-bar {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 4px;
+            border-top: 0.5px solid var(--border);
+            background: var(--bg-card);
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 30px;
+            background: transparent;
+            transition: 0.15s;
+            border: none;
+            color: var(--text-primary);
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .action-btn:active {
+            transform: scale(0.92);
+        }
+
+        .action-btn .number {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .action-btn i {
+            font-size: 20px;
+            min-width: 20px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .action-btn.liked i {
+            color: var(--accent);
+            animation: heartBeat 0.3s ease;
+        }
+
+        .action-btn.saved i {
+            color: var(--accent);
+        }
+
+        .action-btn.reposted i {
+            color: var(--accent-orange);
+        }
+
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            30% { transform: scale(1.3); }
+            60% { transform: scale(0.9); }
+        }
+
+        .action-btn.liked .number {
+            color: var(--accent);
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 0, 80, 0.3);
+            transform: scale(0);
+            animation: rippleEffect 0.6s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes rippleEffect {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .comments-bottom-sheet {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            height: 75%;
+            background: var(--bg-card);
+            border-top-left-radius: 25px;
+            border-top-right-radius: 25px;
+            transition: bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2100;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .comments-bottom-sheet.open {
+            bottom: 0;
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: var(--text-muted);
+            border-radius: 2px;
+            margin: 8px auto;
+            cursor: grab;
+        }
+
+        .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sheet-header h3 {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .close-sheet-btn {
+            background: var(--bg-input);
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .close-sheet-btn:active {
+            background: var(--accent);
+        }
+
+        .comments-list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 15px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .comment-item {
+            margin-bottom: 16px;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .comment-main {
+            display: flex;
+            gap: 10px;
+        }
+
+        .comment-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .comment-content {
+            flex: 1;
+            background: var(--bg-input);
+            padding: 10px 14px;
+            border-radius: 18px;
+            border-top-right-radius: 4px;
+        }
+
+        .comment-author {
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .comment-text {
+            font-size: 13px;
+            margin-top: 3px;
+            word-break: break-word;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .comment-image-preview {
+            max-width: 120px;
+            max-height: 120px;
+            border-radius: 10px;
+            margin-top: 6px;
+            cursor: pointer;
+        }
+
+        .comment-time {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 6px;
+            padding-right: 46px;
+        }
+
+        .comment-action {
+            cursor: pointer;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .comment-action:hover,
+        .comment-action.liked {
+            color: var(--accent);
+        }
+
+        .replies-container {
+            margin-top: 8px;
+            margin-right: 46px;
+            border-right: 2px solid var(--accent);
+            padding-right: 12px;
+        }
+
+        .reply-item {
+            margin-bottom: 10px;
+        }
+
+        .reply-item .comment-content {
+            background: var(--bg-card);
+        }
+
+        .show-replies-btn {
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            padding-right: 46px;
+            margin-top: 4px;
+        }
+
+        .comment-input-area {
+            background: var(--bg-card);
+            padding: 10px 15px;
+            display: flex;
+            gap: 8px;
+            border-top: 1px solid var(--border);
+            align-items: center;
+        }
+
+        .comment-input-area input {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            padding: 10px 16px;
+            color: var(--text-primary);
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .comment-input-area input:focus {
+            border-color: var(--accent);
+        }
+
+        .input-icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .input-icon-btn:active {
+            color: var(--accent);
+            background: var(--bg-input);
+        }
+
+        .send-btn {
+            background: var(--accent);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+            background: #e00045;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .emoji-picker {
+            position: absolute;
+            bottom: 65px;
+            right: 10px;
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 10px;
+            width: 280px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 2200;
+            flex-wrap: wrap;
+            gap: 4px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+        }
+
+        .emoji-picker.active {
+            display: flex;
+        }
+
+        .emoji-option {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .emoji-option:hover {
+            background: var(--bg-input);
+            transform: scale(1.2);
+        }
+
+        .share-bottom-sheet {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            height: 55%;
+            background: var(--bg-card);
+            border-top-left-radius: 25px;
+            border-top-right-radius: 25px;
+            transition: bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2300;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .share-bottom-sheet.open {
+            bottom: 0;
+        }
+
+        .share-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            padding: 0 10px;
+            gap: 4px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .share-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Cairo', sans-serif;
+            transition: 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .social-icons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .social-icon {
+            width: 65px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .social-icon:active {
+            transform: scale(0.9);
+        }
+
+        .social-icon .icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 6px;
+            font-size: 24px;
+            color: white;
+            transition: 0.2s;
+        }
+
+        .social-icon span {
+            font-size: 10px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .social-icon.copy-link .icon-circle {
+            background: var(--accent);
+        }
+        .social-icon.whatsapp .icon-circle {
+            background: #25D366;
+        }
+        .social-icon.facebook .icon-circle {
+            background: #1877F2;
+        }
+        .social-icon.twitter .icon-circle {
+            background: #1DA1F2;
+        }
+        .social-icon.telegram .icon-circle {
+            background: #0088CC;
+        }
+        .social-icon.instagram .icon-circle {
+            background: #E4405F;
+        }
+        .social-icon.email .icon-circle {
+            background: #666;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            z-index: 3000;
+            animation: toastIn 0.3s ease;
+            white-space: nowrap;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 8px 25px rgba(255, 0, 80, 0.4);
+            font-family: 'Cairo', sans-serif;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0 8px;
+            border-top: 1px solid var(--border);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+            margin: 0 auto;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            transition: 0.2s;
+            font-family: 'Cairo', sans-serif;
+            position: relative;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 22px;
+            transition: 0.2s;
+        }
+
+        .nav-item .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .nav-item.create-btn .nav-icon {
+            font-size: 28px;
+            color: var(--accent);
+        }
+
+        .nav-item .nav-dot {
+            position: absolute;
+            top: 2px;
+            right: 8px;
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: none;
+        }
+
+        .infinite-loader {
+            text-align: center;
+            padding: 24px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+            font-size: 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: block;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .double-tap-heart {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 80px;
+            color: white;
+            z-index: 50;
+            pointer-events: none;
+            animation: doubleTapHeart 0.8s ease forwards;
+            text-shadow: 0 0 40px rgba(255, 0, 80, 0.8);
+        }
+
+        @keyframes doubleTapHeart {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.3);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.8);
+                opacity: 0;
+            }
+        }
+
+        @media (min-width: 600px) {
+            .feed-container {
+                border-left: 1px solid var(--border);
+                border-right: 1px solid var(--border);
+                min-height: 100vh;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .action-btn {
+                padding: 6px 8px;
+                gap: 4px;
+                font-size: 11px;
+            }
+            .action-btn i {
+                font-size: 17px;
+            }
+            .action-btn .number {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body class="dark">
+
+    <div class="header">
+        <div class="logo" onclick="window.location.href='index.html'">Ramz-X</div>
+        <div class="header-actions">
+            <button class="icon-btn" id="searchHeaderBtn" onclick="window.location.href='search.html'">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="icon-btn" id="darkModeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="icon-btn" id="profileHeaderBtn" onclick="window.location.href='profile.html'">
+                <i class="fas fa-user-circle"></i>
+                <span class="badge" id="notificationBadge" style="display:none;">3</span>
+            </button>
+        </div>
+    </div>
+
+    <main>
+        <div class="stories-row" id="storiesRow">
+            <div class="story-item story-add" onclick="showToast('📸 افتح الكاميرا لإضافة ستوري')">
+                <div class="story-ring">
+                    <span>+</span>
+                </div>
+                <div class="story-username">أضف ستوري</div>
+            </div>
+        </div>
+        <div class="feed-container" id="feedContainer">
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-pulse"></i>
+                <p>جاري تحميل المنشورات...</p>
+            </div>
+        </div>
+        <div id="infiniteLoader" class="infinite-loader" style="display: none;">
+            <i class="fas fa-spinner fa-pulse spinner"></i> جاري تحميل المزيد...
+        </div>
+    </main>
+
+    <div id="commentsSheet" class="comments-bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h3>💬 التعليقات (<span id="sheetCommentsCount">0</span>)</h3>
+            <button class="close-sheet-btn" id="closeSheetBtn">&times;</button>
+        </div>
+        <div class="comments-list-container" id="sheetCommentsList"></div>
+        <div class="comment-input-area">
+            <button class="input-icon-btn" id="emojiBtn"><i class="far fa-smile-wink"></i></button>
+            <button class="input-icon-btn" id="attachImageBtn"><i class="fas fa-image"></i></button>
+            <input type="text" id="newCommentInput" placeholder="اكتب تعليقاً...">
+            <button class="send-btn" id="sendCommentBtn">إرسال</button>
+        </div>
+        <div id="emojiPicker" class="emoji-picker"></div>
+        <input type="file" id="imageUpload" accept="image/*" style="display:none">
+    </div>
+
+    <div id="shareAdvancedSheet" class="share-bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h3>📤 مشاركة متقدمة</h3>
+            <button class="close-sheet-btn" id="closeShareSheetBtn">&times;</button>
+        </div>
+        <div class="share-tabs">
+            <button class="tab-btn active" data-tab="tab-share">مشاركة</button>
+            <button class="tab-btn" data-tab="tab-download">تحميل</button>
+            <button class="tab-btn" data-tab="tab-report">تبليغ</button>
+            <button class="tab-btn" data-tab="tab-embed">تضمين</button>
+            <button class="tab-btn" data-tab="tab-qr">QR Code</button>
+        </div>
+        <div class="tab-content">
+            <div class="tab-pane active" id="tab-share">
+                <div class="social-icons">
+                    <div class="social-icon whatsapp" data-platform="whatsapp">
+                        <div class="icon-circle"><i class="fab fa-whatsapp"></i></div><span>واتساب</span>
+                    </div>
+                    <div class="social-icon facebook" data-platform="facebook">
+                        <div class="icon-circle"><i class="fab fa-facebook-f"></i></div><span>فيسبوك</span>
+                    </div>
+                    <div class="social-icon twitter" data-platform="twitter">
+                        <div class="icon-circle"><i class="fab fa-twitter"></i></div><span>تويتر</span>
+                    </div>
+                    <div class="social-icon telegram" data-platform="telegram">
+                        <div class="icon-circle"><i class="fab fa-telegram-plane"></i></div><span>تيليجرام</span>
+                    </div>
+                    <div class="social-icon instagram" data-platform="instagram">
+                        <div class="icon-circle"><i class="fab fa-instagram"></i></div><span>انستقرام</span>
+                    </div>
+                    <div class="social-icon email" data-platform="email">
+                        <div class="icon-circle"><i class="fas fa-envelope"></i></div><span>بريد</span>
+                    </div>
+                    <div class="social-icon copy-link" data-platform="copy">
+                        <div class="icon-circle"><i class="fas fa-link"></i></div><span>نسخ الرابط</span>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tab-download">
+                <div style="text-align:center;padding:40px;">
+                    <button class="send-btn" onclick="downloadPostImage()" style="font-size:16px;">
+                        <i class="fas fa-download"></i> تحميل صورة المنشور
+                    </button>
+                </div>
+            </div>
+            <div class="tab-pane" id="tab-report">
+                <div style="text-align:center;padding:40px;">
+                    <p style="margin-bottom:16px;">إبلاغ عن هذا المحتوى</p>
+                    <button class="send-btn" onclick="reportCurrentPost()">
+                        <i class="fas fa-flag"></i> إبلاغ
+                    </button>
+                </div>
+            </div>
+            <div class="tab-pane" id="tab-embed">
+                <div style="text-align:center;padding:40px;">
+                    <p style="margin-bottom:12px;">كود التضمين:</p>
+                    <code style="background:var(--bg-input);padding:10px;border-radius:8px;display:block;word-break:break-all;font-size:11px;" id="embedCode">&lt;iframe src="..."&gt;&lt;/iframe&gt;</code>
+                </div>
+            </div>
+            <div class="tab-pane" id="tab-qr">
+                <div style="text-align:center;padding:40px;">
+                    <p>📱 مسح QR Code للمشاركة</p>
+                    <div style="width:150px;height:150px;background:white;margin:20px auto;border-radius:12px;display:flex;align-items:center;justify-content:center;color:black;">QR قريباً</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="window.location.href='home.html'">
+            <i class="fas fa-home nav-icon"></i>
+            <span class="nav-label">الرئيسية</span>
+        </button>
+        <button class="nav-item" onclick="window.location.href='explore.html'">
+            <i class="fas fa-compass nav-icon"></i>
+            <span class="nav-label">استكشاف</span>
+        </button>
+        <button class="nav-item create-btn" onclick="window.location.href='create-post.html'">
+            <i class="fas fa-plus-circle nav-icon"></i>
+            <span class="nav-label">إنشاء</span>
+        </button>
+        <button class="nav-item" onclick="window.location.href='inbox.html'">
+            <i class="fas fa-inbox nav-icon"></i>
+            <span class="nav-label">صندوق الوارد</span>
+        </button>
+        <button class="nav-item" onclick="window.location.href='profile.html'">
+            <i class="fas fa-user nav-icon"></i>
+            <span class="nav-label">الملف الشخصي</span>
+        </button>
+    </nav>
+
+    <script src="common.js"></script>
+    <script>
+        // ==================== متغيرات عامة ====================
+        let currentUser = null;
+        let feedPosts = [];
+        let hasMore = true;
+        let isLoading = false;
+        let lastCursor = null;
+        let currentCommentPostId = null;
+        let replyingToCommentId = null;
+        let tempImage = null;
+        let currentSharePostId = null;
+        let longPressTimer = null;
+
+        // ==================== دوال مساعدة ====================
+        function showToast(msg, duration = 2500) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        function addRipple(e, element) {
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            const rect = element.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+            ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+            element.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+        }
+
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+            if (seconds < 60) return 'الآن';
+            if (seconds < 3600) return Math.floor(seconds / 60) + ' دقائق';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + ' ساعات';
+            if (seconds < 604800) return Math.floor(seconds / 86400) + ' أيام';
+            return new Date(date).toLocaleDateString('ar');
+        }
+
+        // ==================== جلب التغذية ====================
+        async function fetchFeedPage(limit = 10) {
+            if (!currentUser) return [];
+            let query = supabase
+                .from('posts')
+                .select('*, users:author_id (id, username, avatar, verified)')
+                .eq('hidden', false)
+                .order('created_at', { ascending: false });
+
+            if (lastCursor) query = query.lt('created_at', lastCursor);
+
+            const { data, error } = await query.limit(limit);
+            if (error) { console.error(error); return []; }
+            if (!data || data.length < limit) hasMore = false;
+            if (data && data.length) lastCursor = data[data.length - 1].created_at;
+
+            return (data || []).map(p => ({
+                id: p.id,
+                title: p.title,
+                content: p.content,
+                image: p.image,
+                author_id: p.author_id,
+                author_name: p.users?.username || p.author_name || 'مستخدم',
+                author_avatar: p.users?.avatar || 'https://randomuser.me/api/portraits/lego/' + (Math.floor(Math.random() * 8) + 1) + '.jpg',
+                created_at: p.created_at,
+                likes_count: p.likes_count || 0,
+                comments_count: p.comments_count || 0,
+                views_count: p.views_count || 0,
+                reposts_count: p.reposts_count || 0,
+                favorites_count: p.favorites_count || 0,
+                hashtag: p.hashtag,
+                category: p.category || 'عام',
+                verified: p.users?.verified || false
+            }));
+        }
+
+        async function refreshFeed() {
+            lastCursor = null;
+            hasMore = true;
+            feedPosts = [];
+            const posts = await fetchFeedPage(10);
+            feedPosts = posts;
+            renderFeedPage(posts, false);
+            document.getElementById('infiniteLoader').style.display = hasMore ? 'flex' : 'none';
+        }
+
+        async function loadMore() {
+            if (isLoading || !hasMore) return;
+            isLoading = true;
+            document.getElementById('infiniteLoader').style.display = 'flex';
+            const newPosts = await fetchFeedPage(10);
+            if (newPosts.length) {
+                feedPosts.push(...newPosts);
+                renderFeedPage(newPosts, true);
+            }
+            isLoading = false;
+            document.getElementById('infiniteLoader').style.display = hasMore ? 'flex' : 'none';
+        }
+
+        // ==================== عرض المنشورات ====================
+        async function renderFeedPage(posts, append = false) {
+            const container = document.getElementById('feedContainer');
+            if (!posts.length && !append) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="far fa-newspaper"></i>
+                        <p>لا توجد منشورات بعد</p>
+                        <p style="font-size:12px;color:var(--text-muted);">كن أول من ينشر!</p>
+                    </div>`;
+                return;
+            }
+
+            let html = '';
+            for (let p of posts) {
+                const isLiked = false;
+                const isSaved = false;
+                const isReposted = false;
+                const fullContent = p.content || '';
+                const shortContent = fullContent.length > 150 ? fullContent.substring(0, 150) + '...' : fullContent;
+                const showMore = fullContent.length > 150;
+
+                html += `
+                <div class="post-card" data-id="${p.id}" id="post-${p.id}">
+                    <div class="post-header" onclick="window.location.href='public-profile.html?user=${p.author_id}'">
+                        <img class="author-avatar" src="${p.author_avatar}" alt="${escapeHtml(p.author_name)}" loading="lazy">
+                        <div class="author-info">
+                            <div class="author-name-row">
+                                <span class="author-name">${escapeHtml(p.author_name)}</span>
+                                ${p.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
+                            </div>
+                            <div class="post-date">${timeAgo(p.created_at)}</div>
+                        </div>
+                        <button class="post-menu-btn" onclick="event.stopPropagation(); showPostMenu('${p.id}')">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                    </div>
+                    ${p.image ? `<img class="post-image" src="${p.image}" alt="صورة المنشور" loading="lazy" ondblclick="doubleTapLike('${p.id}', this)" onclick="openFullscreen('${p.id}')">` : ''}
+                    <div class="post-content">
+                        <div class="post-title">
+                            ${escapeHtml(p.title)} 
+                            <span class="category-badge" onclick="event.stopPropagation(); window.location.href='search.html?q=${encodeURIComponent(p.category || 'عام')}'">
+                                ${escapeHtml(p.category || 'عام')}
+                            </span>
+                        </div>
+                        <div class="post-text" id="post-text-${p.id}">${escapeHtml(shortContent)}</div>
+                        ${showMore ? `<span class="more-btn" onclick="toggleFullText('${p.id}')" id="more-btn-${p.id}">...عرض المزيد</span>` : ''}
+                        ${p.hashtag ? `<div class="hashtag" onclick="window.location.href='search.html?q=${encodeURIComponent(p.hashtag)}'">#${escapeHtml(p.hashtag)}</div>` : ''}
+                    </div>
+                    <div class="actions-bar">
+                        <button class="action-btn like-btn" data-id="${p.id}" onclick="handleLike(this, event)">
+                            <span class="number">${formatNumberShort(p.likes_count)}</span>
+                            <i class="far fa-heart"></i>
+                        </button>
+                        <button class="action-btn comment-btn" data-id="${p.id}" onclick="openComments('${p.id}')">
+                            <span class="number">${formatNumberShort(p.comments_count)}</span>
+                            <i class="far fa-comment"></i>
+                        </button>
+                        <button class="action-btn share-btn" data-id="${p.id}" 
+                                onclick="handleRepost(this, event)" 
+                                oncontextmenu="event.preventDefault(); openShareAdvanced('${p.id}')"
+                                onmousedown="startLongPress(event, '${p.id}')"
+                                onmouseup="cancelLongPress()"
+                                onmouseleave="cancelLongPress()"
+                                ontouchstart="startLongPress(event, '${p.id}')"
+                                ontouchend="cancelLongPress()">
+                            <span class="number">${formatNumberShort(p.reposts_count)}</span>
+                            <i class="far fa-share-square"></i>
+                        </button>
+                        <button class="action-btn save-btn" data-id="${p.id}" onclick="handleSave(this, event)">
+                            <span class="number">${formatNumberShort(p.favorites_count)}</span>
+                            <i class="far fa-bookmark"></i>
+                        </button>
+                        <!-- عداد المشاهدات التراكمي -->
+                        <button class="action-btn views-btn" data-id="${p.id}" disabled style="opacity:0.9; cursor:default;">
+                            <span class="number">${formatNumberShort(p.views_count)}</span>
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                </div>`;
+            }
+
+            if (append) {
+                container.insertAdjacentHTML('beforeend', html);
+            } else {
+                container.innerHTML = html;
+            }
+
+            // إعداد مراقب التقاطع لزيادة المشاهدات تلقائياً
+            setupIntersectionObserver();
+        }
+
+        function setupIntersectionObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const postId = entry.target.dataset.id;
+                        if (postId) {
+                            // استخدام localStorage لمنع تكرار المشاهدة لنفس المستخدم على نفس المنشور
+                            const viewedKey = `viewed_${currentUser?.id}_${postId}`;
+                            if (!localStorage.getItem(viewedKey) && !entry.target.dataset.viewed) {
+                                entry.target.dataset.viewed = 'true';
+                                localStorage.setItem(viewedKey, 'true');
+                                // تسجيل مشاهدة تراكمية
+                                recordView(postId);
+                            }
+                        }
+                    }
+                });
+            }, { threshold: 0.6 }); // زيادة الحد إلى 60% لضمان الظهور الفعلي
+
+            document.querySelectorAll('.post-card').forEach(card => {
+                observer.observe(card);
+            });
+        }
+
+        function toggleFullText(postId) {
+            const textDiv = document.getElementById('post-text-' + postId);
+            const moreBtn = document.getElementById('more-btn-' + postId);
+            const post = feedPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            if (textDiv.classList.contains('expanded')) {
+                textDiv.classList.remove('expanded');
+                textDiv.textContent = (post.content || '').substring(0, 150) + '...';
+                if (moreBtn) moreBtn.textContent = '...عرض المزيد';
+            } else {
+                textDiv.classList.add('expanded');
+                textDiv.textContent = post.content || '';
+                if (moreBtn) moreBtn.textContent = 'عرض أقل';
+            }
+        }
+
+        function formatNumberShort(num) {
+            if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        function showPostMenu(postId) {
+            const options = ['حفظ المنشور', 'نسخ الرابط', 'تبليغ', 'إخفاء'];
+            const action = prompt('اختر إجراء:\n1. ' + options.join('\n2. '));
+            if (action === '1') {
+                const btn = document.querySelector('.save-btn[data-id="' + postId + '"]');
+                if (btn) handleSave(btn, new Event('click'));
+            } else if (action === '2') {
+                navigator.clipboard.writeText('https://ramz-x.com/post/' + postId);
+                showToast('🔗 تم نسخ الرابط');
+            } else if (action === '3') {
+                reportPost(postId, 'إبلاغ من قائمة المنشور');
+            }
+        }
+
+        function doubleTapLike(postId, imgElement) {
+            if (!currentUser) return;
+            const heart = document.createElement('div');
+            heart.className = 'double-tap-heart';
+            heart.innerHTML = '❤️';
+            const card = imgElement.closest('.post-card');
+            card.appendChild(heart);
+            setTimeout(() => heart.remove(), 800);
+
+            const btn = card.querySelector('.like-btn');
+            if (btn && !btn.classList.contains('liked')) {
+                handleLike(btn, null);
+            }
+        }
+
+        function openFullscreen(postId) {
+            const post = feedPosts.find(p => p.id === postId);
+            if (!post || !post.image) return;
+            const fullscreen = document.createElement('div');
+            fullscreen.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #000;
+                z-index: 2500;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            `;
+            fullscreen.innerHTML = `
+                <button style="position:fixed;top:16px;right:16px;z-index:2600;background:rgba(0,0,0,0.6);border:none;color:white;font-size:24px;cursor:pointer;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <img src="${post.image}" style="max-height:70vh;max-width:100%;object-fit:contain;border-radius:12px;">
+                <div style="text-align:center;color:white;max-width:500px;margin-top:20px;">
+                    <div style="font-size:22px;font-weight:bold;">${escapeHtml(post.title)}</div>
+                    <div style="color:#ccc;margin-top:8px;">${escapeHtml(post.content || '')}</div>
+                    <div style="color:#aaa;margin-top:12px;">بواسطة ${escapeHtml(post.author_name)}</div>
+                </div>
+            `;
+            document.body.appendChild(fullscreen);
+        }
+
+        // ==================== إجراءات المنشورات ====================
+        async function handleLike(btn, event) {
+            if (!currentUser) { showToast('يرجى تسجيل الدخول أولاً', true); return; }
+            if (event) addRipple(event, btn);
+
+            const postId = btn.dataset.id;
+            const isLiked = btn.classList.contains('liked');
+            const countSpan = btn.querySelector('.number');
+            let current = parseInt(countSpan.innerText.replace(/[^0-9]/g, '')) || 0;
+            const icon = btn.querySelector('i');
+
+            if (!isLiked) {
+                btn.classList.add('liked');
+                icon.className = 'fas fa-heart';
+                countSpan.innerText = formatNumberShort(current + 1);
+                try {
+                    await supabase.from('likes').insert({ user_id: currentUser.id, post_id: postId });
+                    await supabase.rpc('increment_likes', { row_id: postId });
+                } catch (e) {}
+                showToast('❤️ تم الإعجاب');
+            } else {
+                btn.classList.remove('liked');
+                icon.className = 'far fa-heart';
+                countSpan.innerText = formatNumberShort(Math.max(0, current - 1));
+                try {
+                    await supabase.from('likes').delete().eq('user_id', currentUser.id).eq('post_id', postId);
+                    await supabase.rpc('decrement_likes', { row_id: postId });
+                } catch (e) {}
+            }
+        }
+
+        async function handleSave(btn, event) {
+            if (!currentUser) { showToast('يرجى تسجيل الدخول أولاً', true); return; }
+            if (event) addRipple(event, btn);
+
+            const postId = btn.dataset.id;
+            const isSaved = btn.classList.contains('saved');
+            const countSpan = btn.querySelector('.number');
+            let current = parseInt(countSpan.innerText.replace(/[^0-9]/g, '')) || 0;
+            const icon = btn.querySelector('i');
+
+            if (!isSaved) {
+                btn.classList.add('saved');
+                icon.className = 'fas fa-bookmark';
+                countSpan.innerText = formatNumberShort(current + 1);
+                try {
+                    await supabase.from('favorites').insert({ user_id: currentUser.id, post_id: postId });
+                    await supabase.rpc('increment_favorites', { row_id: postId });
+                } catch (e) {}
+                showToast('⭐ تم الحفظ في المفضلة');
+            } else {
+                btn.classList.remove('saved');
+                icon.className = 'far fa-bookmark';
+                countSpan.innerText = formatNumberShort(Math.max(0, current - 1));
+                try {
+                    await supabase.from('favorites').delete().eq('user_id', currentUser.id).eq('post_id', postId);
+                    await supabase.rpc('decrement_favorites', { row_id: postId });
+                } catch (e) {}
+                showToast('💫 تمت إزالة من المفضلة');
+            }
+        }
+
+        async function handleRepost(btn, event) {
+            if (!currentUser) { showToast('يرجى تسجيل الدخول أولاً', true); return; }
+            if (event) addRipple(event, btn);
+
+            const postId = btn.dataset.id;
+            const isReposted = btn.classList.contains('reposted');
+            const countSpan = btn.querySelector('.number');
+            let current = parseInt(countSpan.innerText.replace(/[^0-9]/g, '')) || 0;
+            const icon = btn.querySelector('i');
+
+            if (!isReposted) {
+                btn.classList.add('reposted');
+                icon.className = 'fas fa-share-square';
+                countSpan.innerText = formatNumberShort(current + 1);
+                try {
+                    const { data: original } = await supabase.from('posts').select('*').eq('id', postId).single();
+                    if (original) {
+                        await supabase.from('posts').insert({
+                            title: original.title,
+                            content: `🔄 أعاد ${currentUser.username} نشر منشور @${original.author_name}\n\n${original.content}`,
+                            image: original.image,
+                            author_id: currentUser.id,
+                            author_name: currentUser.username,
+                            hashtag: original.hashtag,
+                            category: original.category,
+                            created_at: new Date().toISOString()
+                        });
+                        await supabase.rpc('increment_reposts', { row_id: postId });
+                    }
+                } catch (e) {}
+                showToast('🔁 تمت إعادة النشر');
+            } else {
+                btn.classList.remove('reposted');
+                icon.className = 'far fa-share-square';
+                countSpan.innerText = formatNumberShort(Math.max(0, current - 1));
+                showToast('↩️ تم إلغاء إعادة النشر');
+            }
+        }
+
+        // ==================== نظام المشاهدات التراكمي (المُحسَّن) ====================
+        /**
+         * تسجيل مشاهدة تراكمية للمنشور.
+         * - تزيد العداد في قاعدة البيانات عبر RPC.
+         * - تحديث العداد في الواجهة لجميع المستخدمين.
+         * - تمنع تكرار المشاهدة لنفس المستخدم باستخدام localStorage.
+         */
+        async function recordView(postId) {
+            if (!postId || !currentUser) return;
+
+            const viewedKey = `viewed_${currentUser.id}_${postId}`;
+            // فحص إضافي: إذا كان قد تم مشاهدته مسبقاً (داخل الجلسة) فلا نزيد
+            if (localStorage.getItem(viewedKey)) return;
+
+            try {
+                // استدعاء دالة RPC لزيادة العداد في قاعدة البيانات (تراكمي)
+                const { data, error } = await supabase.rpc('increment_views', { row_id: postId });
+
+                if (error) {
+                    console.warn('RPC increment_views غير متوفرة، جارٍ استخدام الطريقة البديلة:', error.message);
+                    // خطة بديلة: تحديث مباشر لـ views_count في جدول posts
+                    await fallbackIncrementViews(postId);
+                } else {
+                    // نجاح RPC، نجلب القيمة الجديدة لتحديث الواجهة
+                    await updateViewCounterFromDB(postId);
+                }
+
+                // تعليم المشاهدة محلياً
+                localStorage.setItem(viewedKey, 'true');
+                const card = document.getElementById('post-' + postId);
+                if (card) card.dataset.viewed = 'true';
+
+            } catch (err) {
+                console.error('فشل في تسجيل المشاهدة:', err);
+                // محاولة الطريقة البديلة
+                try {
+                    await fallbackIncrementViews(postId);
+                    localStorage.setItem(viewedKey, 'true');
+                } catch (fallbackErr) {
+                    console.error('الطريقة البديلة فشلت أيضاً:', fallbackErr);
+                }
+            }
+        }
+
+        /**
+         * طريقة بديلة لزيادة المشاهدات في حالة عدم وجود RPC.
+         * تقوم بجلب القيمة الحالية ثم تحديثها.
+         */
+        async function fallbackIncrementViews(postId) {
+            // جلب القيمة الحالية
+            const { data: post, error } = await supabase
+                .from('posts')
+                .select('views_count')
+                .eq('id', postId)
+                .single();
+
+            if (error) throw error;
+
+            const newCount = (post?.views_count || 0) + 1;
+            
+            // تحديث القيمة
+            const { error: updateError } = await supabase
+                .from('posts')
+                .update({ views_count: newCount })
+                .eq('id', postId);
+
+            if (updateError) throw updateError;
+
+            // تحديث الواجهة
+            updateViewCounterDOM(postId, newCount);
+            
+            // تحديث المصفوفة المحلية أيضاً
+            const postInFeed = feedPosts.find(p => p.id === postId);
+            if (postInFeed) postInFeed.views_count = newCount;
+        }
+
+        /**
+         * جلب عدد المشاهدات من قاعدة البيانات وتحديث الواجهة.
+         */
+        async function updateViewCounterFromDB(postId) {
+            const { data: post, error } = await supabase
+                .from('posts')
+                .select('views_count')
+                .eq('id', postId)
+                .single();
+
+            if (error || !post) return;
+
+            updateViewCounterDOM(postId, post.views_count);
+            // تحديث المصفوفة المحلية
+            const postInFeed = feedPosts.find(p => p.id === postId);
+            if (postInFeed) postInFeed.views_count = post.views_count;
+        }
+
+        /**
+         * تحديث عداد المشاهدات في DOM.
+         */
+        function updateViewCounterDOM(postId, count) {
+            const viewsBtn = document.querySelector(`.views-btn[data-id="${postId}"] .number`);
+            if (viewsBtn) {
+                viewsBtn.innerText = formatNumberShort(count || 0);
+            }
+        }
+
+        function startLongPress(event, postId) {
+            longPressTimer = setTimeout(() => {
+                openShareAdvanced(postId);
+            }, 500);
+        }
+
+        function cancelLongPress() {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }
+
+        // ==================== التعليقات ====================
+        async function openComments(postId) {
+            if (!currentUser) { showToast('يرجى تسجيل الدخول أولاً', true); return; }
+            currentCommentPostId = postId;
+            replyingToCommentId = null;
+            document.getElementById('newCommentInput').placeholder = 'اكتب تعليقاً...';
+            await renderCommentsForPost(postId);
+            document.getElementById('commentsSheet').classList.add('open');
+        }
+
+        async function renderCommentsForPost(postId) {
+            const container = document.getElementById('sheetCommentsList');
+            container.innerHTML = '<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-pulse"></i></div>';
+
+            const { data, error } = await supabase
+                .from('comments')
+                .select('*, users:user_id (id, username, avatar)')
+                .eq('post_id', postId)
+                .is('parent_id', null)
+                .order('created_at', { ascending: true });
+
+            if (error) { container.innerHTML = '<div style="text-align:center;padding:40px;">تعذر تحميل التعليقات</div>'; return; }
+            document.getElementById('sheetCommentsCount').innerText = data?.length || 0;
+
+            if (!data || !data.length) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);">💬 كن أول من يعلق!</div>';
+                return;
+            }
+
+            let html = '';
+            for (let c of data) {
+                html += `
+                <div class="comment-item" data-comment-id="${c.id}">
+                    <div class="comment-main">
+                        <img src="${c.users?.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'}" class="comment-avatar" loading="lazy">
+                        <div class="comment-content">
+                            <div class="comment-author">${escapeHtml(c.users?.username || 'مستخدم')}</div>
+                            <div class="comment-text">${escapeHtml(c.text || '')}</div>
+                            ${c.image ? `<img src="${c.image}" class="comment-image-preview" loading="lazy">` : ''}
+                            <div class="comment-time">${timeAgo(c.created_at)}</div>
+                        </div>
+                    </div>
+                    <div class="comment-actions">
+                        <span class="comment-action like-comment" data-id="${c.id}" onclick="toggleCommentLike('${c.id}', this)">
+                            <i class="far fa-heart"></i> ${c.likes || 0}
+                        </span>
+                        <span class="comment-action" onclick="replyToComment('${c.id}')">
+                            <i class="far fa-comment"></i> رد
+                        </span>
+                    </div>
+                    <div class="replies-container" id="replies-${c.id}"></div>
+                </div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function replyToComment(commentId) {
+            replyingToCommentId = commentId;
+            const input = document.getElementById('newCommentInput');
+            input.placeholder = 'كتابة رد...';
+            input.focus();
+        }
+
+        async function toggleCommentLike(commentId, el) {
+            if (!currentUser) { showToast('يرجى تسجيل الدخول أولاً', true); return; }
+            const isLiked = el.classList.contains('liked');
+            let countMatch = el.innerText.match(/\d+/);
+            let count = countMatch ? parseInt(countMatch[0]) : 0;
+
+            if (!isLiked) {
+                el.classList.add('liked');
+                el.innerHTML = `<i class="fas fa-heart"></i> ${count + 1}`;
+                try { await supabase.from('comment_likes').insert({ user_id: currentUser.id, comment_id: commentId }); } catch (e) {}
+            } else {
+                el.classList.remove('liked');
+                el.innerHTML = `<i class="far fa-heart"></i> ${Math.max(0, count - 1)}`;
+                try { await supabase.from('comment_likes').delete().eq('user_id', currentUser.id).eq('comment_id', commentId); } catch (e) {}
+            }
+        }
+
+        async function addComment() {
+            if (!currentUser) { showToast('يرجى تسجيل الدخول أولاً', true); return; }
+            const text = document.getElementById('newCommentInput').value.trim();
+            if (!text && !tempImage) { showToast('⚠️ اكتب تعليقاً أولاً'); return; }
+
+            const sendBtn = document.getElementById('sendCommentBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = '...';
+
+            let imageUrl = null;
+            if (tempImage) {
+                try {
+                    const blob = await (await fetch(tempImage)).blob();
+                    const file = new File([blob], "comment_" + Date.now() + ".jpg", { type: "image/jpeg" });
+                    const fileName = `comments/${Date.now()}_${Math.random().toString(36)}.jpg`;
+                    const { data } = await supabase.storage.from('ramz-x-images').upload(fileName, file);
+                    if (data) imageUrl = "https://zlkpoghjbqtnhzhmmdbw.supabase.co/storage/v1/object/public/ramz-x-images/" + data.path;
+                } catch (e) {
+                    imageUrl = tempImage;
+                }
+            }
+
+            try {
+                await supabase.from('comments').insert({
+                    post_id: currentCommentPostId,
+                    user_id: currentUser.id,
+                    text: text,
+                    image: imageUrl,
+                    parent_id: replyingToCommentId || null,
+                    likes: 0,
+                    created_at: new Date().toISOString()
+                });
+                await supabase.rpc('increment_comments_count', { row_id: currentCommentPostId });
+            } catch (e) {}
+
+            document.getElementById('newCommentInput').value = '';
+            tempImage = null;
+            replyingToCommentId = null;
+            document.getElementById('newCommentInput').placeholder = 'اكتب تعليقاً...';
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'إرسال';
+
+            showToast('💬 تم إضافة التعليق');
+            await renderCommentsForPost(currentCommentPostId);
+
+            const commentBtn = document.querySelector(`.comment-btn[data-id="${currentCommentPostId}"] .number`);
+            if (commentBtn) {
+                let curr = parseInt(commentBtn.innerText.replace(/[^0-9]/g, '')) || 0;
+                commentBtn.innerText = formatNumberShort(curr + 1);
+            }
+        }
+
+        // ==================== المشاركة المتقدمة ====================
+        function openShareAdvanced(postId) {
+            currentSharePostId = postId;
+            document.getElementById('shareAdvancedSheet').classList.add('open');
+            document.getElementById('embedCode').textContent = `<iframe src="https://ramz-x.com/post/${postId}" width="100%" height="500"></iframe>`;
+        }
+
+        function closeShareSheet() {
+            document.getElementById('shareAdvancedSheet').classList.remove('open');
+        }
+
+        function shareOnPlatform(platform) {
+            const url = `https://ramz-x.com/post/${currentSharePostId}`;
+            const post = feedPosts.find(p => p.id === currentSharePostId);
+            const text = post ? post.title : 'منشور رائع على Ramz-X';
+
+            const shareUrls = {
+                whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
+                facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+                twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+                telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+            };
+
+            if (platform === 'copy') {
+                navigator.clipboard.writeText(url).then(() => showToast('🔗 تم نسخ الرابط'));
+            } else if (platform === 'email') {
+                window.location.href = `mailto:?subject=${encodeURIComponent(text)}&body=${encodeURIComponent(url)}`;
+            } else if (shareUrls[platform]) {
+                window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+            } else {
+                showToast(`📤 تمت المشاركة عبر ${platform}`);
+            }
+            closeShareSheet();
+        }
+
+        async function downloadPostImage() {
+            const post = feedPosts.find(p => p.id === currentSharePostId);
+            if (!post || !post.image) { showToast('⚠️ لا توجد صورة لهذا المنشور'); return; }
+            try {
+                const response = await fetch(post.image);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'ramz-x-post-' + currentSharePostId + '.jpg';
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('📥 جاري تحميل الصورة');
+            } catch (e) {
+                window.open(post.image, '_blank');
+            }
+        }
+
+        async function reportCurrentPost() {
+            const reason = prompt('سبب الإبلاغ:');
+            if (!reason) return;
+            await reportPost(currentSharePostId, reason);
+            showToast('🚩 تم استلام البلاغ، شكراً لك');
+            closeShareSheet();
+        }
+
+        // ==================== تهيئة الصفحة ====================
+        async function init() {
+            // تحميل المستخدم
+            const stored = localStorage.getItem('currentUser');
+            if (stored) {
+                try { currentUser = JSON.parse(stored); } catch (e) {}
+            }
+            if (!currentUser) {
+                currentUser = await createGuestUser();
+            }
+
+            // تحميل التغذية
+            await refreshFeed();
+
+            // مراقبة التمرير
+            window.addEventListener('scroll', () => {
+                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
+                    loadMore();
+                }
+            });
+
+            // الوضع المظلم
+            document.getElementById('darkModeToggle').addEventListener('click', () => {
+                document.body.classList.toggle('light');
+                const icon = document.querySelector('#darkModeToggle i');
+                if (document.body.classList.contains('light')) {
+                    icon.className = 'fas fa-sun';
+                    localStorage.setItem('darkMode', 'false');
+                } else {
+                    icon.className = 'fas fa-moon';
+                    localStorage.setItem('darkMode', 'true');
+                }
+            });
+
+            if (localStorage.getItem('darkMode') === 'false') {
+                document.body.classList.add('light');
+                document.querySelector('#darkModeToggle i').className = 'fas fa-sun';
+            }
+
+            // أزرار إغلاق النوافذ
+            document.getElementById('closeSheetBtn').addEventListener('click', () => {
+                document.getElementById('commentsSheet').classList.remove('open');
+            });
+            document.getElementById('closeShareSheetBtn').addEventListener('click', closeShareSheet);
+
+            // إرسال التعليق
+            document.getElementById('sendCommentBtn').addEventListener('click', addComment);
+            document.getElementById('newCommentInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addComment();
+            });
+
+            // رفع الصور
+            document.getElementById('attachImageBtn').addEventListener('click', () => {
+                document.getElementById('imageUpload').click();
+            });
+            document.getElementById('imageUpload').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        tempImage = ev.target.result;
+                        showToast('📷 تم اختيار صورة');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // الإيموجي
+            const emojis = ['😀', '😂', '😍', '🔥', '👍', '🎉', '❤️', '😢', '😡', '🤔', '💪', '✨', '🌟', '👏', '🙏', '💯', '🎵', '📸', '💡', '🚀'];
+            const picker = document.getElementById('emojiPicker');
+            emojis.forEach(e => {
+                const span = document.createElement('span');
+                span.className = 'emoji-option';
+                span.textContent = e;
+                span.addEventListener('click', () => {
+                    document.getElementById('newCommentInput').value += e;
+                    picker.classList.remove('active');
+                    document.getElementById('newCommentInput').focus();
+                });
+                picker.appendChild(span);
+            });
+            document.getElementById('emojiBtn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                picker.classList.toggle('active');
+            });
+
+            // أزرار المشاركة
+            document.querySelectorAll('.social-icon').forEach(icon => {
+                icon.addEventListener('click', () => shareOnPlatform(icon.dataset.platform));
+            });
+
+            // تبويبات المشاركة
+            document.querySelectorAll('#shareAdvancedSheet .tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#shareAdvancedSheet .tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.querySelectorAll('#shareAdvancedSheet .tab-pane').forEach(p => p.classList.remove('active'));
+                    const target = document.getElementById(btn.dataset.tab);
+                    if (target) target.classList.add('active');
+                });
+            });
+
+            // إغلاق النوافذ بالنقر خارجها
+            document.getElementById('commentsSheet').addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('open');
+            });
+            document.getElementById('shareAdvancedSheet').addEventListener('click', function(e) {
+                if (e.target === this) closeShareSheet();
+            });
+
+            // تحديث الستوريز
+            updateStories();
+
+            console.log('🚀 Ramz-X Home Page initialized with enhanced cumulative view counter');
+        }
+
+        function updateStories() {
+            const storiesRow = document.getElementById('storiesRow');
+            const storyUsers = ['أحمد', 'سارة', 'محمد', 'فاطمة', 'علي', 'نور'];
+            let storiesHTML = `
+                <div class="story-item story-add" onclick="showToast('📸 افتح الكاميرا لإضافة ستوري')">
+                    <div class="story-ring"><span>+</span></div>
+                    <div class="story-username">أضف ستوري</div>
+                </div>`;
+
+            storyUsers.forEach(name => {
+                storiesHTML += `
+                <div class="story-item" onclick="showToast('👀 ستوري ${name} قريباً')">
+                    <div class="story-ring">
+                        <img class="story-avatar" src="https://randomuser.me/api/portraits/${Math.random() > 0.5 ? 'men' : 'women'}/${Math.floor(Math.random() * 70) + 1}.jpg" alt="${name}">
+                    </div>
+                    <div class="story-username">${name}</div>
+                </div>`;
+            });
+            storiesRow.innerHTML = storiesHTML;
+        }
+
+        // بدء التطبيق
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
