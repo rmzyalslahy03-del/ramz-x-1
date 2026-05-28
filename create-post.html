@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>Ramz-X | إنشاء منشور</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-primary: #000000;
+            --bg-card: #111111;
+            --bg-input: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --text-muted: #777777;
+            --accent: #ff0050;
+            --accent-blue: #3b82f6;
+            --accent-orange: #ff7b00;
+            --green: #25D366;
+            --red: #ff4444;
+            --border: #2c2c2c;
+            --radius: 1rem;
+        }
+
+        body.light {
+            --bg-primary: #f5f5f5;
+            --bg-card: #ffffff;
+            --bg-input: #e8e8e8;
+            --text-primary: #111111;
+            --text-secondary: #444444;
+            --text-muted: #666666;
+            --border: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-primary);
+            font-family: 'Cairo', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 70px;
+            color: var(--text-primary);
+            transition: background 0.3s, color 0.3s;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-primary);
+            border-bottom: 0.5px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            cursor: pointer;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-input);
+        }
+
+        .create-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-family: 'Cairo', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.2s;
+            resize: vertical;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            line-height: 1.5;
+        }
+
+        .char-count {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: left;
+            margin-top: 4px;
+        }
+
+        .image-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            background: var(--bg-input);
+            position: relative;
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--accent);
+        }
+
+        .image-upload-area i {
+            font-size: 28px;
+            color: var(--text-muted);
+        }
+
+        .image-preview-container {
+            position: relative;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .remove-image-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--red);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .hashtag-input {
+            direction: ltr;
+            text-align: right;
+        }
+
+        .publish-btn {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .publish-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .publish-btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        .preview-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-top: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .preview-card .preview-title {
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .preview-card .preview-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin: 10px 0;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0 8px;
+            border-top: 1px solid var(--border);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+            margin: 0 auto;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-item .nav-icon {
+            font-size: 22px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            z-index: 3000;
+            animation: toastIn 0.3s ease;
+            white-space: nowrap;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 8px 25px rgba(255, 0, 80, 0.4);
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        @media (max-width: 360px) {
+            .create-container {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body class="dark">
+    <div class="header">
+        <div class="logo" onclick="window.location.href='index.html'">Ramz-X</div>
+        <div class="header-actions">
+            <button class="icon-btn" id="darkModeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="icon-btn" onclick="window.location.href='profile.html'">
+                <i class="fas fa-user-circle"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="create-container">
+        <h2 style="font-weight:800; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+            <i class="fas fa-plus-circle" style="color:var(--accent);"></i> إنشاء منشور جديد
+        </h2>
+
+        <div class="form-group">
+            <label class="form-label">العنوان *</label>
+            <input type="text" class="form-input" id="postTitle" placeholder="عنوان المنشور..." maxlength="100">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">المحتوى</label>
+            <textarea class="form-textarea" id="postContent" placeholder="اكتب شيئاً رائعاً..."></textarea>
+            <div class="char-count" id="charCount">0 / 500</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">التصنيف</label>
+            <select class="form-select" id="postCategory">
+                <option value="عام">عام</option>
+                <option value="تقنية">تقنية</option>
+                <option value="رياضة">رياضة</option>
+                <option value="فن">فن</option>
+                <option value="طعام">طعام</option>
+                <option value="سفر">سفر</option>
+                <option value="ألعاب">ألعاب</option>
+                <option value="تعليم">تعليم</option>
+                <option value="أخبار">أخبار</option>
+                <option value="أخرى">أخرى</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">هاشتاق (اختياري)</label>
+            <input type="text" class="form-input hashtag-input" id="postHashtag" placeholder="#هاشتاق" maxlength="30">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">إضافة صورة</label>
+            <div class="image-upload-area" id="imageUploadArea">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p style="font-size:13px; color:var(--text-muted);">انقر لاختيار صورة</p>
+            </div>
+            <input type="file" id="imageInput" accept="image/*" style="display:none">
+            <div id="imagePreviewContainer" class="image-preview-container" style="display:none;">
+                <img id="imagePreview" class="image-preview" src="" alt="معاينة">
+                <button class="remove-image-btn" id="removeImageBtn"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+
+        <!-- معاينة سريعة -->
+        <div class="preview-card" id="previewCard" style="display:none;">
+            <div style="font-weight:600; margin-bottom:8px; color:var(--text-muted);"><i class="far fa-eye"></i> معاينة</div>
+            <div class="preview-title" id="previewTitle"></div>
+            <img id="previewImage" class="preview-image" src="" style="display:none;">
+            <div id="previewContent" style="margin-top:8px; color:var(--text-secondary);"></div>
+            <div id="previewHashtag" style="margin-top:6px;"></div>
+        </div>
+
+        <button class="publish-btn" id="publishBtn" disabled>
+            <i class="fas fa-paper-plane"></i> نشر
+        </button>
+    </div>
+
+    <nav class="bottom-nav">
+        <button class="nav-item" onclick="window.location.href='index.html'">
+            <i class="fas fa-home nav-icon"></i>
+            <span class="nav-label">الرئيسية</span>
+        </button>
+        <button class="nav-item" onclick="window.location.href='explore.html'">
+            <i class="fas fa-compass nav-icon"></i>
+            <span class="nav-label">استكشاف</span>
+        </button>
+        <button class="nav-item active">
+            <i class="fas fa-plus-circle nav-icon"></i>
+            <span class="nav-label">إنشاء</span>
+        </button>
+        <button class="nav-item" onclick="window.location.href='inbox.html'">
+            <i class="fas fa-inbox nav-icon"></i>
+            <span class="nav-label">الوارد</span>
+        </button>
+        <button class="nav-item" onclick="window.location.href='profile.html'">
+            <i class="fas fa-user nav-icon"></i>
+            <span class="nav-label">الملف</span>
+        </button>
+    </nav>
+
+    <script src="common.js"></script>
+    <script>
+        let currentUser = null;
+        let selectedImageFile = null;
+        let selectedImageUrl = null;
+
+        // عناصر DOM
+        const titleInput = document.getElementById('postTitle');
+        const contentInput = document.getElementById('postContent');
+        const charCount = document.getElementById('charCount');
+        const imageInput = document.getElementById('imageInput');
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+        const publishBtn = document.getElementById('publishBtn');
+        const previewCard = document.getElementById('previewCard');
+        const previewTitle = document.getElementById('previewTitle');
+        const previewImage = document.getElementById('previewImage');
+        const previewContent = document.getElementById('previewContent');
+        const previewHashtag = document.getElementById('previewHashtag');
+
+        function showToast(msg, duration = 2500) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        function updateCharCount() {
+            const len = contentInput.value.length;
+            charCount.textContent = `${len} / 500`;
+            charCount.style.color = len > 500 ? 'var(--red)' : 'var(--text-muted)';
+        }
+
+        function updatePreview() {
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+            const hashtag = document.getElementById('postHashtag').value.trim();
+
+            if (title || content || selectedImageUrl || hashtag) {
+                previewCard.style.display = 'block';
+                previewTitle.textContent = title || 'عنوان المنشور';
+                previewContent.textContent = content || 'محتوى المنشور...';
+                if (selectedImageUrl) {
+                    previewImage.src = selectedImageUrl;
+                    previewImage.style.display = 'block';
+                } else {
+                    previewImage.style.display = 'none';
+                }
+                if (hashtag) {
+                    previewHashtag.innerHTML = `<span style="color:var(--accent); background:rgba(255,0,80,0.1); padding:4px 10px; border-radius:20px; font-size:12px;">#${hashtag.replace(/^#/, '')}</span>`;
+                } else {
+                    previewHashtag.innerHTML = '';
+                }
+            } else {
+                previewCard.style.display = 'none';
+            }
+        }
+
+        function checkFormValidity() {
+            const title = titleInput.value.trim();
+            publishBtn.disabled = !title;
+        }
+
+        // مستمعو الأحداث
+        titleInput.addEventListener('input', () => {
+            checkFormValidity();
+            updatePreview();
+        });
+
+        contentInput.addEventListener('input', () => {
+            updateCharCount();
+            updatePreview();
+        });
+
+        document.getElementById('postHashtag').addEventListener('input', updatePreview);
+
+        imageUploadArea.addEventListener('click', () => {
+            imageInput.click();
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                selectedImageFile = file;
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    selectedImageUrl = ev.target.result;
+                    imagePreview.src = selectedImageUrl;
+                    imagePreviewContainer.style.display = 'inline-block';
+                    imageUploadArea.style.display = 'none';
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeImageBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedImageFile = null;
+            selectedImageUrl = null;
+            imageInput.value = '';
+            imagePreview.src = '';
+            imagePreviewContainer.style.display = 'none';
+            imageUploadArea.style.display = 'block';
+            updatePreview();
+        });
+
+        publishBtn.addEventListener('click', publishPost);
+
+        async function publishPost() {
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+            const category = document.getElementById('postCategory').value;
+            let hashtag = document.getElementById('postHashtag').value.trim();
+            if (hashtag && !hashtag.startsWith('#')) hashtag = '#' + hashtag;
+
+            if (!currentUser) {
+                showToast('يجب تسجيل الدخول أولاً');
+                return;
+            }
+
+            publishBtn.disabled = true;
+            publishBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> جاري النشر...';
+
+            let imageUrl = null;
+            // رفع الصورة إذا وجدت
+            if (selectedImageFile) {
+                try {
+                    const fileExt = selectedImageFile.name.split('.').pop();
+                    const fileName = `posts/${Date.now()}_${Math.random().toString(36)}.${fileExt}`;
+                    const { data, error } = await supabase.storage
+                        .from('ramz-x-images')
+                        .upload(fileName, selectedImageFile);
+                    if (!error) {
+                        const { data: { publicUrl } } = supabase.storage
+                            .from('ramz-x-images')
+                            .getPublicUrl(fileName);
+                        imageUrl = publicUrl;
+                    } else {
+                        throw error;
+                    }
+                } catch (err) {
+                    showToast('فشل رفع الصورة، يرجى المحاولة مرة أخرى');
+                    publishBtn.disabled = false;
+                    publishBtn.innerHTML = '<i class="fas fa-paper-plane"></i> نشر';
+                    return;
+                }
+            }
+
+            // إدراج المنشور في قاعدة البيانات
+            const { data, error } = await supabase
+                .from('posts')
+                .insert([{
+                    author_id: currentUser.id,
+                    author_name: currentUser.username || 'مستخدم',
+                    title: title,
+                    content: content,
+                    image: imageUrl,
+                    category: category,
+                    hashtag: hashtag ? hashtag.replace(/^#/, '') : null,
+                    created_at: new Date().toISOString(),
+                    hidden: false,
+                    likes_count: 0,
+                    comments_count: 0,
+                    views_count: 0,
+                    reposts_count: 0,
+                    favorites_count: 0
+                }])
+                .select();
+
+            if (error) {
+                showToast('حدث خطأ أثناء النشر');
+                publishBtn.disabled = false;
+                publishBtn.innerHTML = '<i class="fas fa-paper-plane"></i> نشر';
+                return;
+            }
+
+            showToast('🎉 تم نشر منشورك بنجاح!');
+            // إعادة التوجيه للصفحة الرئيسية بعد لحظة
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+
+        // تهيئة الصفحة
+        async function init() {
+            const stored = localStorage.getItem('currentUser');
+            if (stored) {
+                try { currentUser = JSON.parse(stored); } catch (e) {}
+            }
+            if (!currentUser) {
+                currentUser = await createGuestUser();
+            }
+
+            // الوضع الداكن
+            document.getElementById('darkModeToggle').addEventListener('click', () => {
+                document.body.classList.toggle('light');
+                const icon = document.querySelector('#darkModeToggle i');
+                if (document.body.classList.contains('light')) {
+                    icon.className = 'fas fa-sun';
+                    localStorage.setItem('darkMode', 'false');
+                } else {
+                    icon.className = 'fas fa-moon';
+                    localStorage.setItem('darkMode', 'true');
+                }
+            });
+
+            if (localStorage.getItem('darkMode') === 'false') {
+                document.body.classList.add('light');
+                document.querySelector('#darkModeToggle i').className = 'fas fa-sun';
+            }
+
+            updateCharCount();
+            checkFormValidity();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+  </html>
