@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>القصص | Ramz-X</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #000;
+            --text: #fff;
+            --accent: #ff0050;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: #000;
+            font-family: 'Cairo', sans-serif;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .story-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        /* شريط التقدم */
+        .progress-bar-container {
+            position: absolute;
+            top: 12px;
+            left: 8px;
+            right: 8px;
+            display: flex;
+            gap: 4px;
+            z-index: 10;
+            padding: 0 8px;
+        }
+        .progress-segment {
+            flex: 1;
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #fff;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .progress-segment.completed .progress-fill {
+            width: 100%;
+            background: #fff;
+        }
+
+        /* المحتوى الرئيسي */
+        .story-media-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: #000;
+        }
+        .story-media {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+        .story-media.active { display: block; }
+        .story-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* رأس القصة */
+        .story-header {
+            position: absolute;
+            top: 28px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10;
+        }
+        .story-author-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+        }
+        .story-author-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .story-author-name {
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+        .story-time {
+            color: rgba(255,255,255,0.7);
+            font-size: 11px;
+        }
+        .story-close-btn {
+            background: rgba(0,0,0,0.4);
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* أزرار التنقل */
+        .nav-area {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 33%;
+            z-index: 5;
+            cursor: pointer;
+        }
+        .nav-area.left { left: 0; }
+        .nav-area.right { right: 0; }
+
+        /* منطقة إدخال الرد */
+        .story-reply-area {
+            position: absolute;
+            bottom: 20px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+        .story-reply-input {
+            flex: 1;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 30px;
+            padding: 10px 16px;
+            color: #fff;
+            font-family: 'Cairo', sans-serif;
+            font-size: 14px;
+            outline: none;
+            backdrop-filter: blur(10px);
+        }
+        .story-reply-input::placeholder { color: rgba(255,255,255,0.6); }
+        .story-send-btn {
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* قائمة القصص */
+        .stories-list-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            padding: 12px 16px;
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            z-index: 10;
+            border-radius: 16px 16px 0 0;
+        }
+        .stories-list-bar::-webkit-scrollbar { display: none; }
+        .story-thumb {
+            flex: 0 0 auto;
+            width: 52px;
+            text-align: center;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: 0.2s;
+        }
+        .story-thumb.active { opacity: 1; }
+        .story-thumb-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid transparent;
+            margin: 0 auto 4px;
+        }
+        .story-thumb.active .story-thumb-avatar {
+            border-color: var(--accent);
+        }
+        .story-thumb-name {
+            font-size: 10px;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 52px;
+        }
+
+        /* إضافة قصة */
+        .add-story-thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 2px dashed var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--accent);
+            margin: 0 auto 4px;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+        }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="story-container" id="storyContainer">
+    <!-- شريط التقدم -->
+    <div class="progress-bar-container" id="progressBarContainer"></div>
+
+    <!-- رأس القصة -->
+    <div class="story-header" id="storyHeader">
+        <img id="storyAuthorAvatar" class="story-author-avatar" src="">
+        <div class="story-author-info">
+            <span id="storyAuthorName" class="story-author-name"></span>
+            <span id="storyTime" class="story-time"></span>
+        </div>
+        <button class="story-close-btn" onclick="closeStoryViewer()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- المحتوى -->
+    <div class="story-media-wrapper" id="storyMediaWrapper">
+        <img id="storyImage" class="story-media">
+        <video id="storyVideo" class="story-media story-video" loop muted playsinline></video>
+        <div class="empty-state" id="emptyState">
+            <i class="fas fa-clock"></i>
+            <p>لا توجد قصص</p>
+        </div>
+    </div>
+
+    <!-- مناطق النقر للتنقل -->
+    <div class="nav-area left" id="navLeft"></div>
+    <div class="nav-area right" id="navRight"></div>
+
+    <!-- منطقة الرد -->
+    <div class="story-reply-area" id="replyArea">
+        <input type="text" id="replyInput" class="story-reply-input" placeholder="رد على القصة...">
+        <button class="story-send-btn" id="sendReplyBtn"><i class="fas fa-paper-plane"></i></button>
+    </div>
+
+    <!-- قائمة مصغرة للقصص -->
+    <div class="stories-list-bar" id="storiesListBar"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="common.js"></script>
+<script>
+    // ========== متغيرات عامة ==========
+    let currentUser = null;
+    let stories = [];
+    let currentStoryIndex = 0;
+    let currentStoryPage = 0; // الصفحة داخل قصة المستخدم (إذا كان لديه عدة قصص)
+    let storyInterval = null;
+    let storyDuration = 5000; // 5 ثوانٍ للقصة الواحدة
+    let progressStartTime = null;
+    let videoElement = null;
+
+    const storyImage = document.getElementById('storyImage');
+    const storyVideo = document.getElementById('storyVideo');
+    const progressBarContainer = document.getElementById('progressBarContainer');
+    const navLeft = document.getElementById('navLeft');
+    const navRight = document.getElementById('navRight');
+    const emptyState = document.getElementById('emptyState');
+    const storiesListBar = document.getElementById('storiesListBar');
+
+    // ========== تهيئة ==========
+    async function init() {
+        await initDB();
+        currentUser = await checkSession();
+        
+        const params = new URLSearchParams(window.location.search);
+        const targetUserId = params.get('user');
+        
+        await loadStories();
+        
+        if (targetUserId) {
+            const idx = stories.findIndex(s => s.user_id === targetUserId);
+            if (idx >= 0) {
+                currentStoryIndex = idx;
+            }
+        }
+        
+        if (stories.length === 0) {
+            emptyState.style.display = 'block';
+            return;
+        }
+        
+        emptyState.style.display = 'none';
+        renderStoriesList();
+        renderProgressBars();
+        startCurrentStory();
+    }
+
+    // ========== تحميل القصص ==========
+    async function loadStories() {
+        const { data, error } = await supabase
+            .from('stories')
+            .select('*, users:user_id (id, username, avatar)')
+            .gte('expires_at', new Date().toISOString())
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('خطأ في تحميل القصص:', error);
+            return;
+        }
+
+        // تجميع القصص حسب المستخدم
+        const grouped = new Map();
+        (data || []).forEach(story => {
+            if (!grouped.has(story.user_id)) {
+                grouped.set(story.user_id, {
+                    user_id: story.user_id,
+                    username: story.users?.username || 'مستخدم',
+                    avatar: story.users?.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg',
+                    stories: []
+                });
+            }
+            grouped.get(story.user_id).stories.push(story);
+        });
+
+        stories = Array.from(grouped.values());
+    }
+
+    // ========== عرض القصة الحالية ==========
+    function startCurrentStory() {
+        stopProgress();
+        
+        const currentUserStories = stories[currentStoryIndex];
+        if (!currentUserStories) return;
+        
+        const story = currentUserStories.stories[currentStoryPage];
+        if (!story) {
+            // الانتقال للمستخدم التالي
+            if (currentStoryIndex < stories.length - 1) {
+                currentStoryIndex++;
+                currentStoryPage = 0;
+                renderProgressBars();
+                startCurrentStory();
+            } else {
+                closeStoryViewer();
+            }
+            return;
+        }
+
+        // تحديث الرأس
+        document.getElementById('storyAuthorAvatar').src = currentUserStories.avatar;
+        document.getElementById('storyAuthorName').textContent = currentUserStories.username;
+        document.getElementById('storyTime').textContent = timeAgo(story.created_at);
+
+        // عرض الوسائط
+        storyVideo.style.display = 'none';
+        storyImage.style.display = 'none';
+        storyVideo.pause();
+
+        if (story.media_url) {
+            const isVideo = story.media_url.match(/\.(mp4|webm|ogg)$/i);
+            if (isVideo) {
+                storyVideo.src = story.media_url;
+                storyVideo.style.display = 'block';
+                storyVideo.play();
+                videoElement = storyVideo;
+                // انتظار انتهاء الفيديو
+                storyVideo.onended = () => {
+                    nextStory();
+                };
+            } else {
+                storyImage.src = story.media_url;
+                storyImage.style.display = 'block';
+                startProgressBar();
+            }
+        } else if (story.text) {
+            // عرض النص فقط
+            storyImage.style.display = 'none';
+            storyVideo.style.display = 'none';
+            const textOverlay = document.createElement('div');
+            textOverlay.id = 'textOverlay';
+            textOverlay.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: #fff;
+                font-size: 24px;
+                font-weight: 600;
+                text-align: center;
+                padding: 20px;
+                z-index: 15;
+            `;
+            textOverlay.textContent = story.text;
+            document.getElementById('storyMediaWrapper').appendChild(textOverlay);
+            startProgressBar();
+        }
+
+        updateActiveThumb();
+    }
+
+    // ========== شريط التقدم ==========
+    function renderProgressBars() {
+        const currentUserStories = stories[currentStoryIndex];
+        if (!currentUserStories) return;
+        
+        const count = currentUserStories.stories.length;
+        let html = '';
+        for (let i = 0; i < count; i++) {
+            html += `<div class="progress-segment ${i < currentStoryPage ? 'completed' : ''}" data-index="${i}">
+                <div class="progress-fill"></div>
+            </div>`;
+        }
+        progressBarContainer.innerHTML = html;
+    }
+
+    function startProgressBar() {
+        const segments = progressBarContainer.querySelectorAll('.progress-segment');
+        const currentSegment = segments[currentStoryPage];
+        if (!currentSegment) return;
+        
+        const fill = currentSegment.querySelector('.progress-fill');
+        fill.style.width = '0%';
+        progressStartTime = Date.now();
+
+        storyInterval = setInterval(() => {
+            const elapsed = Date.now() - progressStartTime;
+            const percent = Math.min(100, (elapsed / storyDuration) * 100);
+            fill.style.width = percent + '%';
+            
+            if (percent >= 100) {
+                clearInterval(storyInterval);
+                nextStory();
+            }
+        }, 50);
+    }
+
+    function stopProgress() {
+        if (storyInterval) {
+            clearInterval(storyInterval);
+            storyInterval = null;
+        }
+        if (videoElement) {
+            videoElement.pause();
+            videoElement.onended = null;
+            videoElement = null;
+        }
+        // إزالة نص متراكب إن وجد
+        const textOverlay = document.getElementById('textOverlay');
+        if (textOverlay) textOverlay.remove();
+    }
+
+    function nextStory() {
+        stopProgress();
+        
+        const currentUserStories = stories[currentStoryIndex];
+        if (currentStoryPage < currentUserStories.stories.length - 1) {
+            currentStoryPage++;
+            renderProgressBars();
+            startCurrentStory();
+        } else {
+            // الانتقال للمستخدم التالي
+            if (currentStoryIndex < stories.length - 1) {
+                currentStoryIndex++;
+                currentStoryPage = 0;
+                renderProgressBars();
+                startCurrentStory();
+            } else {
+                closeStoryViewer();
+            }
+        }
+    }
+
+    function prevStory() {
+        stopProgress();
+        
+        if (currentStoryPage > 0) {
+            currentStoryPage--;
+            renderProgressBars();
+            startCurrentStory();
+        } else if (currentStoryIndex > 0) {
+            currentStoryIndex--;
+            const prevUserStories = stories[currentStoryIndex];
+            currentStoryPage = prevUserStories.stories.length - 1;
+            renderProgressBars();
+            startCurrentStory();
+        }
+    }
+
+    // ========== قائمة القصص المصغرة ==========
+    function renderStoriesList() {
+        let html = '';
+        // إضافة قصتك
+        html += `
+            <div class="story-thumb" onclick="addNewStory()">
+                <div class="add-story-thumb"><i class="fas fa-plus"></i></div>
+                <div class="story-thumb-name">قصتك</div>
+            </div>
+        `;
+        
+        stories.forEach((s, idx) => {
+            html += `
+                <div class="story-thumb ${idx === currentStoryIndex ? 'active' : ''}" onclick="jumpToStory(${idx})">
+                    <img src="${s.avatar}" class="story-thumb-avatar" onerror="this.src='https://randomuser.me/api/portraits/lego/1.jpg'">
+                    <div class="story-thumb-name">${escapeHtml(s.username)}</div>
+                </div>
+            `;
+        });
+        storiesListBar.innerHTML = html;
+    }
+
+    function updateActiveThumb() {
+        document.querySelectorAll('.story-thumb').forEach((thumb, idx) => {
+            thumb.classList.toggle('active', idx - 1 === currentStoryIndex); // -1 لأن الأول هو "قصتك"
+        });
+    }
+
+    function jumpToStory(index) {
+        stopProgress();
+        currentStoryIndex = index;
+        currentStoryPage = 0;
+        renderProgressBars();
+        startCurrentStory();
+    }
+
+    async function addNewStory() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*,video/*';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const text = prompt('أضف نصاً (اختياري):');
+            const result = await createStory(file, text || '');
+            if (result) {
+                showToast('تم نشر قصتك!');
+                await loadStories();
+                renderStoriesList();
+            }
+        };
+        input.click();
+    }
+
+    // ========== إرسال رد ==========
+    document.getElementById('sendReplyBtn').addEventListener('click', async () => {
+        const text = document.getElementById('replyInput').value.trim();
+        if (!text) return;
+        
+        const story = stories[currentStoryIndex]?.stories[currentStoryPage];
+        if (story) {
+            await sendPrivateMessage(story.user_id, `📖 رداً على قصتك: ${text}`);
+            showToast('تم إرسال الرد');
+            document.getElementById('replyInput').value = '';
+        }
+    });
+
+    document.getElementById('replyInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('sendReplyBtn').click();
+        }
+    });
+
+    // ========== التنقل ==========
+    navLeft.addEventListener('click', prevStory);
+    navRight.addEventListener('click', nextStory);
+
+    // منع انتشار النقر من مناطق أخرى
+    document.getElementById('replyArea').addEventListener('click', (e) => e.stopPropagation());
+
+    function closeStoryViewer() {
+        stopProgress();
+        window.location.href = 'home.html';
+    }
+
+    function showToast(msg) {
+        if (window.RamzNotif) {
+            window.RamzNotif.showToast(msg);
+        }
+    }
+
+    // ========== بدء التشغيل ==========
+    init();
+</script>
+</body>
+</html>
