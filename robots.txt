@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin.html
 Disallow: /api/
 
-Sitemap: https://ramz-x.com/sitemap.xml
+Sitemap: https://ramz-x-1.vercel.app/sitemap.xml
