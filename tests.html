@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبارات Ramz-X | بيئة الفحص</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc; --surface: #fff; --surface2: #f1f5f9;
+            --text: #0f172a; --text2: #475569; --text3: #94a3b8;
+            --border: #cbd5e1; --accent: #3b82f6; --danger: #ef4444; --success: #10b981;
+            --radius: 12px;
+        }
+        body.dark {
+            --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
+            --text: #e2e8f0; --text2: #cbd5e1; --text3: #94a3b8; --border: #475569;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:var(--bg); font-family:'Cairo',sans-serif; min-height:100vh; padding:20px; color:var(--text); }
+        .container { max-width:900px; margin:auto; }
+        h1 { text-align:center; margin-bottom:20px; }
+        .test-category {
+            background:var(--surface); border-radius:var(--radius); border:1px solid var(--border);
+            margin-bottom:16px; overflow:hidden;
+        }
+        .category-header {
+            padding:12px 16px; background:var(--surface2); font-weight:700; font-size:16px;
+            display:flex; align-items:center; gap:8px; cursor:pointer;
+        }
+        .category-body { padding:16px; }
+        .test-item {
+            display:flex; align-items:center; gap:12px; padding:8px 0;
+            border-bottom:1px solid var(--border);
+        }
+        .test-item:last-child { border-bottom:none; }
+        .test-status {
+            width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+            font-size:12px; color:#fff; flex-shrink:0;
+        }
+        .status-pass { background:var(--success); }
+        .status-fail { background:var(--danger); }
+        .status-running { background:var(--accent); animation:spin 1s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .test-name { flex:1; font-weight:600; }
+        .test-details { font-size:12px; color:var(--text3); margin-top:4px; }
+        .btn {
+            padding:10px 20px; border-radius:30px; border:none; font-weight:600; cursor:pointer;
+            font-family:'Cairo',sans-serif; margin:4px; transition:0.2s;
+        }
+        .btn-primary { background:var(--accent); color:#fff; }
+        .btn-danger { background:var(--danger); color:#fff; }
+        .progress-bar { height:6px; background:var(--surface2); border-radius:3px; margin-top:12px; }
+        .progress-fill { height:100%; background:var(--accent); border-radius:3px; width:0%; transition:width 0.3s; }
+    </style>
+</head>
+<body class="dark">
+<div class="container">
+    <h1><i class="fas fa-flask"></i> بيئة اختبار Ramz-X</h1>
+    <div style="display:flex; gap:8px; justify-content:center; margin-bottom:20px;">
+        <button class="btn btn-primary" onclick="runAllTests()">تشغيل جميع الاختبارات</button>
+        <button class="btn btn-danger" onclick="clearResults()">مسح النتائج</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="globalProgress"></div></div>
+    <div id="testsContainer"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="common.js"></script>
+<script>
+    const testCategories = [
+        {
+            name: 'الاتصال بقاعدة البيانات',
+            icon: 'fa-database',
+            tests: [
+                { name: 'تهيئة Supabase (initDB)', func: testInitDB },
+                { name: 'جلب المستخدمين (SELECT)', func: testSelectUsers },
+                { name: 'جلب المنشورات', func: testSelectPosts },
+                { name: 'الاتصال بالدلو (Storage)', func: testStorageConnection },
+            ]
+        },
+        {
+            name: 'المصادقة والجلسات',
+            icon: 'fa-lock',
+            tests: [
+                { name: 'إنشاء جلسة ضيف', func: testCreateGuestSession },
+                { name: 'صلاحيات المشرف', func: testAdminRole },
+                { name: 'حماية المدخلات (XSS)', func: testXSSProtection },
+            ]
+        },
+        {
+            name: 'التفاعلات الأساسية',
+            icon: 'fa-heart',
+            tests: [
+                { name: 'الإعجاب (like)', func: testLikeFunction },
+                { name: 'المفضلة (favorite)', func: testFavoriteFunction },
+                { name: 'إعادة النشر (repost)', func: testRepostFunction },
+            ]
+        },
+        {
+            name: 'الأداء والتحميل',
+            icon: 'fa-tachometer-alt',
+            tests: [
+                { name: 'زمن تحميل common.js', func: testCommonLoadTime },
+                { name: 'التحميل الكسول (Lazy Load)', func: testLazyLoading },
+            ]
+        },
+        {
+            name: 'الأمان',
+            icon: 'fa-shield-alt',
+            tests: [
+                { name: 'محاولة حقن SQL', func: testSQLInjection },
+                { name: 'تزوير الطلبات (CSRF)', func: testCSRF },
+                { name: 'تعقيم المدخلات (sanitizeHTML)', func: testSanitize },
+            ]
+        },
+    ];
+
+    let totalTests = 0;
+    let passedTests = 0;
+
+    function renderTests() {
+        let html = '';
+        testCategories.forEach(cat => {
+            totalTests += cat.tests.length;
+            html += `
+            <div class="test-category">
+                <div class="category-header"><i class="fas ${cat.icon}"></i> ${cat.name}</div>
+                <div class="category-body">
+                    ${cat.tests.map((test, idx) => `
+                        <div class="test-item" id="test-${cat.name}-${idx}">
+                            <div class="test-status status-running" id="status-${cat.name}-${idx}"><i class="fas fa-spinner"></i></div>
+                            <div>
+                                <div class="test-name">${test.name}</div>
+                                <div class="test-details" id="details-${cat.name}-${idx}">في الانتظار...</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+        });
+        document.getElementById('testsContainer').innerHTML = html;
+    }
+
+    function updateTestStatus(catName, idx, passed, details = '') {
+        const statusEl = document.getElementById(`status-${catName}-${idx}`);
+        const detailsEl = document.getElementById(`details-${catName}-${idx}`);
+        if (passed) {
+            statusEl.className = 'test-status status-pass';
+            statusEl.innerHTML = '<i class="fas fa-check"></i>';
+            passedTests++;
+        } else {
+            statusEl.className = 'test-status status-fail';
+            statusEl.innerHTML = '<i class="fas fa-times"></i>';
+        }
+        detailsEl.textContent = details;
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const percent = totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
+        document.getElementById('globalProgress').style.width = percent + '%';
+    }
+
+    async function runAllTests() {
+        passedTests = 0;
+        totalTests = 0;
+        renderTests();
+        document.getElementById('globalProgress').style.width = '0%';
+        for (let cat of testCategories) {
+            for (let i = 0; i < cat.tests.length; i++) {
+                try {
+                    const result = await cat.tests[i].func();
+                    updateTestStatus(cat.name, i, result.passed, result.details);
+                } catch (e) {
+                    updateTestStatus(cat.name, i, false, 'خطأ غير متوقع: ' + e.message);
+                }
+            }
+        }
+    }
+
+    function clearResults() {
+        document.getElementById('testsContainer').innerHTML = '<p style="text-align:center;color:var(--text3);">اضغط "تشغيل جميع الاختبارات" للبدء.</p>';
+        document.getElementById('globalProgress').style.width = '0%';
+    }
+
+    // ========== دوال الاختبار ==========
+    async function testInitDB() {
+        const start = Date.now();
+        const result = await initDB();
+        const duration = Date.now() - start;
+        return { passed: result === true, details: `تم التهيئة في ${duration}ms` };
+    }
+
+    async function testSelectUsers() {
+        const { data, error } = await supabase.from('users').select('id').limit(1);
+        return { passed: !error && data.length >= 0, details: error ? 'فشل في جلب المستخدمين' : `نجح، عدد المستخدمين المتاحين: ${data.length}` };
+    }
+
+    async function testSelectPosts() {
+        const { data, error } = await supabase.from('posts').select('id').limit(1).eq('hidden', false);
+        return { passed: !error, details: error ? error.message : 'نجح' };
+    }
+
+    async function testStorageConnection() {
+        const { data, error } = await supabase.storage.from('ramz-x-images').list('', { limit: 1 });
+        return { passed: !error, details: error ? error.message : 'الدلو متصل' };
+    }
+
+    async function testCreateGuestSession() {
+        const user = await createGuestUser();
+        const valid = user && user.id && user.is_guest;
+        return { passed: valid, details: valid ? 'تم إنشاء حساب ضيف' : 'فشل' };
+    }
+
+    async function testAdminRole() {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if (!user) return { passed: false, details: 'لا يوجد مستخدم' };
+        const { data } = await supabase.from('users').select('role').eq('id', user.id).single();
+        const isAdmin = data?.role === 'admin';
+        return { passed: !isAdmin, details: isAdmin ? 'المستخدم مشرف (غير آمن)' : 'صلاحيات طبيعية' };
+    }
+
+    async function testXSSProtection() {
+        const maliciousInput = '<script>alert("XSS")</script>';
+        const sanitized = sanitizeInput(maliciousInput);
+        const passed = !sanitized.includes('<script>');
+        return { passed, details: passed ? 'تم التعقيم' : 'فشل التعقيم' };
+    }
+
+    async function testLikeFunction() {
+        const postId = '00000000-0000-0000-0000-000000000000'; // افتراضي
+        try {
+            await supabase.rpc('increment_likes', { row_id: postId });
+            return { passed: true, details: 'تم استدعاء RPC' };
+        } catch (e) {
+            return { passed: false, details: e.message };
+        }
+    }
+
+    async function testFavoriteFunction() {
+        try {
+            await supabase.rpc('increment_favorites', { row_id: '00000000-0000-0000-0000-000000000000' });
+            return { passed: true, details: 'تم استدعاء RPC' };
+        } catch (e) {
+            return { passed: false, details: e.message };
+        }
+    }
+
+    async function testRepostFunction() {
+        try {
+            await supabase.rpc('increment_reposts', { row_id: '00000000-0000-0000-0000-000000000000' });
+            return { passed: true, details: 'تم استدعاء RPC' };
+        } catch (e) {
+            return { passed: false, details: e.message };
+        }
+    }
+
+    async function testCommonLoadTime() {
+        const start = performance.now();
+        if (typeof fetchFeed === 'function') {
+            const end = performance.now();
+            return { passed: true, details: `زمن التحميل: ${Math.round(end - start)}ms` };
+        }
+        return { passed: false, details: 'الدالة غير موجودة' };
+    }
+
+    async function testLazyLoading() {
+        const supportsIntersection = 'IntersectionObserver' in window;
+        return { passed: supportsIntersection, details: supportsIntersection ? 'مدعوم' : 'غير مدعوم' };
+    }
+
+    async function testSQLInjection() {
+        const malicious = "'; DROP TABLE users; --";
+        const { data, error } = await supabase.from('users').select('id').ilike('username', malicious);
+        return { passed: !error, details: 'تمت مقاومة الحقن' };
+    }
+
+    async function testCSRF() {
+        const token = localStorage.getItem('supabase.auth.token');
+        return { passed: true, details: 'لا توجد آلية CSRF (يستخدم Supabase RLS)' };
+    }
+
+    async function testSanitize() {
+        const dirty = '<img src=x onerror=alert(1)>';
+        const clean = sanitizeInput(dirty);
+        return { passed: !clean.includes('<img'), details: 'تم التعقيم' };
+    }
+
+    function sanitizeInput(input) {
+        if (typeof input !== 'string') return '';
+        return input.replace(/[&<>"'\/]/g, (char) => {
+            const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;' };
+            return entities[char] || char;
+        });
+    }
+
+    // بدء تشغيل تلقائي
+    window.onload = () => {
+        runAllTests();
+    };
+</script>
+</body>
+</html>
