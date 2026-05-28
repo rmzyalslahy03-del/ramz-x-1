@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>لوحة التحكم | Ramz-X</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc; --surface: #fff; --surface2: #f1f5f9;
+            --text: #0f172a; --text2: #475569; --text3: #94a3b8;
+            --border: #cbd5e1; --accent: #3b82f6; --danger: #ef4444;
+            --radius: 16px; --shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        body.dark {
+            --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
+            --text: #e2e8f0; --text2: #cbd5e1; --text3: #94a3b8;
+            --border: #475569;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background:var(--bg); font-family:'Cairo',sans-serif; min-height:100vh;
+            padding-bottom:80px; color:var(--text); transition:background 0.3s;
+        }
+        .container { max-width:1200px; margin:0 auto; padding:20px; }
+        .header {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:12px 20px; background:var(--surface); border-radius:var(--radius);
+            margin-bottom:20px; box-shadow:var(--shadow);
+        }
+        .header h1 { font-size:24px; }
+        .header-actions { display:flex; gap:10px; }
+        .btn {
+            padding:8px 16px; border-radius:30px; font-weight:600; border:none;
+            cursor:pointer; transition:0.2s; display:inline-flex; align-items:center; gap:6px;
+        }
+        .btn-primary { background:var(--accent); color:#fff; }
+        .btn-danger { background:var(--danger); color:#fff; }
+        .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text); }
+        .stats-grid {
+            display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap:16px; margin-bottom:20px;
+        }
+        .stat-card {
+            background:var(--surface); border-radius:var(--radius); padding:20px;
+            box-shadow:var(--shadow); text-align:center;
+        }
+        .stat-number { font-size:32px; font-weight:800; color:var(--accent); }
+        .stat-label { font-size:14px; color:var(--text2); margin-top:4px; }
+        .tabs {
+            display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;
+        }
+        .tab-btn {
+            padding:10px 20px; background:var(--surface2); border:none; border-radius:30px;
+            color:var(--text2); font-weight:600; cursor:pointer; transition:0.2s;
+        }
+        .tab-btn.active { background:var(--accent); color:#fff; }
+        .card {
+            background:var(--surface); border-radius:var(--radius); padding:20px;
+            box-shadow:var(--shadow); margin-bottom:20px;
+        }
+        table { width:100%; border-collapse:collapse; }
+        th, td { padding:12px; text-align:right; border-bottom:1px solid var(--border); }
+        th { color:var(--text2); font-weight:600; }
+        td { color:var(--text); }
+        .badge {
+            padding:4px 10px; border-radius:20px; font-size:12px; font-weight:600;
+        }
+        .badge-success { background:#d1fae5; color:#065f46; }
+        .badge-danger { background:#fee2e2; color:#991b1b; }
+        .badge-warning { background:#fef3c7; color:#92400e; }
+        .switch {
+            position:relative; width:44px; height:24px; display:inline-block;
+        }
+        .switch input { opacity:0; width:0; height:0; }
+        .slider {
+            position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0;
+            background-color:var(--border); transition:0.3s; border-radius:34px;
+        }
+        .slider:before {
+            position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px;
+            background-color:var(--surface); transition:0.3s; border-radius:50%;
+        }
+        input:checked + .slider { background-color:var(--accent); }
+        input:checked + .slider:before { transform:translateX(20px); }
+        .modal {
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center;
+            z-index:2000; visibility:hidden; opacity:0; transition:0.2s;
+        }
+        .modal.open { visibility:visible; opacity:1; }
+        .modal-content {
+            background:var(--surface); border-radius:var(--radius); max-width:500px;
+            width:90%; padding:20px; max-height:80vh; overflow-y:auto;
+        }
+        .modal-header { display:flex; justify-content:space-between; margin-bottom:16px; }
+        .close-btn { cursor:pointer; font-size:20px; }
+        input, select, textarea {
+            width:100%; padding:10px; border-radius:12px; border:1px solid var(--border);
+            background:var(--surface2); color:var(--text); font-family:'Cairo',sans-serif;
+            margin-bottom:12px; outline:none;
+        }
+    </style>
+</head>
+<body class="light">
+
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-crown"></i> لوحة التحكم</h1>
+        <div class="header-actions">
+            <button class="btn btn-outline" id="darkToggle"><i class="fas fa-moon"></i></button>
+            <button class="btn btn-outline" onclick="window.location.href='home.html'"><i class="fas fa-home"></i> الرئيسية</button>
+        </div>
+    </div>
+
+    <!-- إحصائيات سريعة -->
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-number" id="totalUsers">0</div><div class="stat-label">مستخدم</div></div>
+        <div class="stat-card"><div class="stat-number" id="totalPosts">0</div><div class="stat-label">منشور</div></div>
+        <div class="stat-card"><div class="stat-number" id="totalReports">0</div><div class="stat-label">بلاغ</div></div>
+        <div class="stat-card"><div class="stat-number" id="totalAdmins">0</div><div class="stat-label">مشرف</div></div>
+    </div>
+
+    <!-- التبويبات -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="users">المستخدمون</button>
+        <button class="tab-btn" data-tab="posts">المنشورات</button>
+        <button class="tab-btn" data-tab="reports">البلاغات</button>
+    </div>
+
+    <!-- قسم المستخدمين -->
+    <div class="card" id="usersSection">
+        <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+            <h3>إدارة المستخدمين</h3>
+            <input type="text" id="userSearch" placeholder="بحث عن مستخدم..." style="width:250px;">
+        </div>
+        <table id="usersTable"><thead><tr><th>المستخدم</th><th>البريد</th><th>الدور</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <!-- قسم المنشورات -->
+    <div class="card" id="postsSection" style="display:none;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+            <h3>إدارة المنشورات</h3>
+            <input type="text" id="postSearch" placeholder="بحث عن منشور..." style="width:250px;">
+        </div>
+        <table id="postsTable"><thead><tr><th>العنوان</th><th>الكاتب</th><th>التفاعل</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <!-- قسم البلاغات -->
+    <div class="card" id="reportsSection" style="display:none;">
+        <h3>البلاغات</h3>
+        <table id="reportsTable"><thead><tr><th>المنشور</th><th>المُبلِّغ</th><th>السبب</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody></tbody></table>
+    </div>
+</div>
+
+<!-- مودال تأكيد -->
+<div class="modal" id="confirmModal">
+    <div class="modal-content">
+        <div class="modal-header"><h3 id="confirmTitle">تأكيد</h3><i class="fas fa-times close-btn" onclick="closeModal()"></i></div>
+        <p id="confirmMessage">هل أنت متأكد؟</p>
+        <button class="btn btn-danger" id="confirmAction">تنفيذ</button>
+        <button class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="common.js"></script>
+<script>
+    let currentUser = null;
+    let allUsers = [], allPosts = [], allReports = [];
+    let activeTab = 'users';
+
+    // ---------- تحقق من الصلاحية ----------
+    async function checkAdmin() {
+        await initDB();
+        currentUser = await checkSession();
+        if (!currentUser || currentUser.role !== 'admin') {
+            alert('غير مصرح لك بالدخول إلى لوحة التحكم');
+            window.location.href = 'home.html';
+            return false;
+        }
+        return true;
+    }
+
+    // ---------- دوال عامة ----------
+    function openModal(title, message, callback) {
+        document.getElementById('confirmTitle').textContent = title;
+        document.getElementById('confirmMessage').textContent = message;
+        document.getElementById('confirmModal').classList.add('open');
+        document.getElementById('confirmAction').onclick = async () => {
+            await callback();
+            closeModal();
+        };
+    }
+    function closeModal() { document.getElementById('confirmModal').classList.remove('open'); }
+
+    // ---------- تحميل البيانات ----------
+    async function loadStats() {
+        const { count: users } = await supabase.from('users').select('*', { count: 'exact', head: true });
+        const { count: posts } = await supabase.from('posts').select('*', { count: 'exact', head: true }).eq('hidden', false);
+        const { count: reports } = await supabase.from('reports').select('*', { count: 'exact', head: true }).eq('resolved', false);
+        const { count: admins } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'admin');
+        document.getElementById('totalUsers').textContent = users || 0;
+        document.getElementById('totalPosts').textContent = posts || 0;
+        document.getElementById('totalReports').textContent = reports || 0;
+        document.getElementById('totalAdmins').textContent = admins || 0;
+    }
+
+    async function loadUsers(search = '') {
+        let query = supabase.from('users').select('*').order('created_at', { ascending: false });
+        if (search) query = query.or(`username.ilike.%${search}%,email.ilike.%${search}%`);
+        const { data } = await query;
+        allUsers = data || [];
+        renderUsersTable();
+    }
+
+    function renderUsersTable() {
+        const tbody = document.querySelector('#usersTable tbody');
+        tbody.innerHTML = allUsers.map(u => `
+            <tr>
+                <td><div style="display:flex;align-items:center;gap:8px;"><img src="${u.avatar||'https://randomuser.me/api/portraits/lego/1.jpg'}" style="width:36px;height:36px;border-radius:50%;"><span>${u.username}</span></div></td>
+                <td>${u.email || '-'}</td>
+                <td><span class="badge ${u.role==='admin'?'badge-warning':'badge-success'}">${u.role||'user'}</span></td>
+                <td>${u.banned ? '<span class="badge badge-danger">محظور</span>' : '<span class="badge badge-success">نشط</span>'}</td>
+                <td>
+                    <button class="btn btn-outline" onclick="toggleBan('${u.id}', ${!u.banned})">${u.banned ? 'رفع الحظر' : 'حظر'}</button>
+                    ${u.role !== 'admin' ? `<button class="btn btn-primary" onclick="promoteUser('${u.id}')">ترقية</button>` : ''}
+                    <button class="btn btn-danger" onclick="deleteUser('${u.id}')">حذف</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async function toggleBan(userId, ban) {
+        await supabase.from('users').update({ banned: ban }).eq('id', userId);
+        loadUsers();
+    }
+
+    async function promoteUser(userId) {
+        await supabase.from('users').update({ role: 'admin' }).eq('id', userId);
+        loadUsers();
+        loadStats();
+    }
+
+    async function deleteUser(userId) {
+        openModal('حذف مستخدم', 'سيتم حذف المستخدم وجميع منشوراته. متابعة؟', async () => {
+            await supabase.from('users').delete().eq('id', userId);
+            loadUsers();
+            loadStats();
+        });
+    }
+
+    // ---------- المنشورات ----------
+    async function loadPosts(search = '') {
+        let query = supabase.from('posts').select('*').order('created_at', { ascending: false });
+        if (search) query = query.or(`title.ilike.%${search}%,author_name.ilike.%${search}%`);
+        const { data } = await query;
+        allPosts = data || [];
+        renderPostsTable();
+    }
+
+    function renderPostsTable() {
+        const tbody = document.querySelector('#postsTable tbody');
+        tbody.innerHTML = allPosts.map(p => `
+            <tr>
+                <td>${p.title?.substring(0,40) || 'بدون عنوان'}</td>
+                <td>${p.author_name || 'مستخدم'}</td>
+                <td>❤️ ${p.likes_count||0} 💬 ${p.comments_count||0}</td>
+                <td>${p.hidden ? '<span class="badge badge-danger">مخفي</span>' : '<span class="badge badge-success">ظاهر</span>'} ${p.pinned ? '<span class="badge badge-warning">مثبت</span>' : ''}</td>
+                <td>
+                    <button class="btn btn-outline" onclick="toggleHide('${p.id}', ${!p.hidden})">${p.hidden ? 'إظهار' : 'إخفاء'}</button>
+                    <button class="btn btn-primary" onclick="togglePin('${p.id}', ${!p.pinned})">${p.pinned ? 'إلغاء تثبيت' : 'تثبيت'}</button>
+                    <button class="btn btn-danger" onclick="deletePost('${p.id}')">حذف</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async function toggleHide(postId, hide) {
+        await supabase.from('posts').update({ hidden: hide }).eq('id', postId);
+        loadPosts();
+    }
+    async function togglePin(postId, pin) {
+        await supabase.from('posts').update({ pinned: pin }).eq('id', postId);
+        loadPosts();
+    }
+    async function deletePost(postId) {
+        openModal('حذف منشور', 'سيتم حذف المنشور نهائياً. متابعة؟', async () => {
+            await supabase.from('posts').delete().eq('id', postId);
+            loadPosts();
+            loadStats();
+        });
+    }
+
+    // ---------- البلاغات ----------
+    async function loadReports() {
+        const { data } = await supabase.from('reports').select('*, post:post_id (title), reporter:reporter_id (username)').eq('resolved', false).order('created_at', { ascending: false });
+        allReports = data || [];
+        renderReportsTable();
+    }
+
+    function renderReportsTable() {
+        const tbody = document.querySelector('#reportsTable tbody');
+        tbody.innerHTML = allReports.map(r => `
+            <tr>
+                <td>${r.post?.title?.substring(0,40) || 'منشور محذوف'}</td>
+                <td>${r.reporter?.username || 'مستخدم'}</td>
+                <td>${r.reason}</td>
+                <td>${new Date(r.created_at).toLocaleDateString('ar')}</td>
+                <td>
+                    <button class="btn btn-danger" onclick="deleteReportedPost('${r.post_id}', '${r.id}')">حذف المنشور</button>
+                    <button class="btn btn-outline" onclick="resolveReport('${r.id}')">تجاهل</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async function deleteReportedPost(postId, reportId) {
+        openModal('حذف المنشور المُبلغ عنه', 'سيتم حذف المنشور. متابعة؟', async () => {
+            await supabase.from('posts').delete().eq('id', postId);
+            await supabase.from('reports').update({ resolved: true }).eq('id', reportId);
+            loadReports();
+            loadStats();
+        });
+    }
+    async function resolveReport(reportId) {
+        await supabase.from('reports').update({ resolved: true }).eq('id', reportId);
+        loadReports();
+        loadStats();
+    }
+
+    // ---------- التبويبات ----------
+    function switchTab(tab) {
+        activeTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+        document.getElementById('usersSection').style.display = tab === 'users' ? 'block' : 'none';
+        document.getElementById('postsSection').style.display = tab === 'posts' ? 'block' : 'none';
+        document.getElementById('reportsSection').style.display = tab === 'reports' ? 'block' : 'none';
+        if (tab === 'users') loadUsers();
+        if (tab === 'posts') loadPosts();
+        if (tab === 'reports') loadReports();
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+    document.getElementById('userSearch').addEventListener('input', e => loadUsers(e.target.value));
+    document.getElementById('postSearch').addEventListener('input', e => loadPosts(e.target.value));
+
+    // ---------- بدء التشغيل ----------
+    (async () => {
+        const ok = await checkAdmin();
+        if (!ok) return;
+        loadStats();
+        loadUsers();
+    })();
+
+    // الوضع الداكن
+    document.getElementById('darkToggle').addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        document.body.classList.toggle('light');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+    });
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark');
+        document.body.classList.remove('light');
+    }
+</script>
+</body>
+</html>
