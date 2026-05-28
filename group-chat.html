@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>المحادثة الجماعية | Ramz-X</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #000; --surface: #111; --surface2: #1a1a1a;
+            --text: #fff; --text2: #aaa; --text3: #777;
+            --border: #2c2c2c; --accent: #ff0050;
+            --radius: 16px;
+        }
+        body.light {
+            --bg: #f5f5f5; --surface: #fff; --surface2: #e8e8e8;
+            --text: #111; --text2: #444; --text3: #666; --border: #ddd;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background:var(--bg); font-family:'Cairo',sans-serif; min-height:100vh;
+            padding-bottom:70px; color:var(--text); transition:background 0.3s;
+        }
+        .container { max-width:600px; margin:0 auto; display:flex; flex-direction:column; height:100vh; }
+        .header {
+            display:flex; align-items:center; padding:12px 16px; background:var(--surface);
+            border-bottom:0.5px solid var(--border); position:sticky; top:0; z-index:10;
+        }
+        .back-btn { background:none; border:none; color:var(--text); font-size:24px; cursor:pointer; margin-left:8px; }
+        .group-avatar {
+            width:40px; height:40px; border-radius:50%; background:var(--accent);
+            display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;
+            margin-left:12px;
+        }
+        .group-info { flex:1; }
+        .group-name { font-weight:700; font-size:16px; }
+        .group-meta { font-size:12px; color:var(--text3); }
+        .header-actions { display:flex; gap:8px; }
+        .members-btn {
+            background:none; border:none; color:var(--text); font-size:20px; cursor:pointer;
+            width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+        }
+        .members-btn:hover { background:var(--surface2); }
+
+        .messages-container {
+            flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column;
+        }
+        .message-item {
+            display:flex; gap:8px; margin-bottom:16px; max-width:85%;
+        }
+        .message-item.own { align-self:flex-end; flex-direction:row-reverse; }
+        .message-item.other { align-self:flex-start; }
+        .msg-avatar {
+            width:32px; height:32px; border-radius:50%; object-fit:cover; background:var(--surface2);
+        }
+        .msg-content {
+            background:var(--surface2); padding:8px 12px; border-radius:12px;
+            max-width:100%; word-break:break-word;
+        }
+        .own .msg-content { background:var(--accent); color:#fff; }
+        .msg-sender {
+            font-size:11px; font-weight:600; color:var(--text2); margin-bottom:2px;
+        }
+        .own .msg-sender { color:rgba(255,255,255,0.8); }
+        .msg-text { font-size:14px; }
+        .msg-image { max-width:200px; border-radius:8px; margin-top:4px; cursor:pointer; }
+        .msg-time {
+            font-size:10px; color:var(--text3); margin-top:4px; text-align:left;
+        }
+        .own .msg-time { text-align:right; }
+        .load-more {
+            text-align:center; padding:8px; color:var(--accent); cursor:pointer;
+        }
+        .empty-state {
+            text-align:center; padding:60px 20px; color:var(--text3);
+        }
+        .input-area {
+            display:flex; align-items:center; padding:12px; background:var(--surface);
+            border-top:0.5px solid var(--border); gap:8px;
+        }
+        .input-area input {
+            flex:1; background:var(--surface2); border:none; border-radius:25px;
+            padding:10px 16px; color:var(--text); font-family:'Cairo',sans-serif; outline:none;
+        }
+        .send-btn {
+            background:var(--accent); color:#fff; border:none; width:40px; height:40px;
+            border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+        }
+        .attach-btn {
+            background:var(--surface2); color:var(--text); border:none; width:40px; height:40px;
+            border-radius:50%; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+        }
+
+        /* أعضاء المودال */
+        .members-modal {
+            position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7);
+            z-index:100; display:flex; justify-content:center; align-items:flex-end;
+        }
+        .members-sheet {
+            background:var(--surface); width:100%; max-width:600px; max-height:70vh;
+            border-radius:var(--radius) var(--radius) 0 0; padding:20px; overflow-y:auto;
+        }
+        .member-item {
+            display:flex; align-items:center; gap:12px; padding:8px 0;
+            border-bottom:0.5px solid var(--border);
+        }
+        .bottom-footer {
+            position:fixed; bottom:0; left:0; right:0; background:var(--surface);
+            display:flex; justify-content:space-around; padding:8px 0; border-top:1px solid var(--border); z-index:30;
+        }
+        .footer-button { background:none; border:none; text-align:center; cursor:pointer; color:var(--text2); text-decoration:none; }
+        .icon { font-size:22px; display:block; margin-bottom:4px; }
+        .label { font-size:11px; }
+    </style>
+</head>
+<body class="dark">
+
+<div class="container">
+    <div class="header">
+        <button class="back-btn" onclick="window.location.href='inbox.html'"><i class="fas fa-arrow-right"></i></button>
+        <div class="group-avatar"><i class="fas fa-users"></i></div>
+        <div class="group-info">
+            <div class="group-name" id="groupName">تحميل...</div>
+            <div class="group-meta" id="groupMeta"></div>
+        </div>
+        <div class="header-actions">
+            <button class="members-btn" id="membersBtn"><i class="fas fa-info-circle"></i></button>
+        </div>
+    </div>
+
+    <div class="messages-container" id="messagesContainer">
+        <div id="loadMoreTrigger" style="height:1px;"></div>
+        <div class="empty-state" id="emptyState">جاري تحميل الرسائل...</div>
+    </div>
+
+    <div class="input-area">
+        <button class="attach-btn" id="attachBtn"><i class="fas fa-paperclip"></i></button>
+        <input type="text" id="messageInput" placeholder="اكتب رسالة...">
+        <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<div class="bottom-footer">
+    <a href="home.html" class="footer-button"><i class="fas fa-home icon"></i><div class="label">الرئيسية</div></a>
+    <a href="explore.html" class="footer-button"><i class="fas fa-compass icon"></i><div class="label">استكشاف</div></a>
+    <a href="create-post.html" class="footer-button"><i class="fas fa-plus-circle icon"></i><div class="label">إنشاء</div></a>
+    <a href="inbox.html" class="footer-button"><i class="fas fa-inbox icon"></i><div class="label">صندوق الوارد</div></a>
+    <a href="profile.html" class="footer-button"><i class="fas fa-user icon"></i><div class="label">الملف الشخصي</div></a>
+</div>
+
+<div id="globalToast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="common.js"></script>
+<script>
+    // ========== متغيرات ==========
+    let currentUser = null;
+    let groupId = null;
+    let groupData = null;
+    let messages = [];
+    let oldestCursor = null;
+    let isLoadingMore = false;
+    let hasMore = true;
+    let realtimeSubscription = null;
+    let membersList = [];
+
+    const messagesContainer = document.getElementById('messagesContainer');
+    const loadMoreTrigger = document.getElementById('loadMoreTrigger');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const attachBtn = document.getElementById('attachBtn');
+
+    // ========== دوال مساعدة ==========
+    function showToast(msg) {
+        const t = document.getElementById('globalToast');
+        t.textContent = msg; t.style.opacity = '1';
+        setTimeout(() => t.style.opacity = '0', 2500);
+    }
+
+    // ========== تهيئة المجموعة ==========
+    async function initGroup() {
+        const params = new URLSearchParams(window.location.search);
+        groupId = params.get('group');
+        if (!groupId) {
+            alert('معرف المجموعة غير موجود');
+            window.location.href = 'inbox.html';
+            return;
+        }
+        // جلب بيانات المجموعة
+        const { data, error } = await supabase.from('groups').select('*').eq('id', groupId).single();
+        if (error || !data) {
+            alert('المجموعة غير موجودة');
+            window.location.href = 'inbox.html';
+            return;
+        }
+        groupData = data;
+        document.getElementById('groupName').textContent = groupData.name;
+        // جلب عدد الأعضاء
+        const { count } = await supabase.from('group_members').select('*', { count: 'exact', head: true }).eq('group_id', groupId);
+        document.getElementById('groupMeta').textContent = `${count || 0} أعضاء`;
+        // جلب قائمة الأعضاء
+        const { data: members } = await supabase.from('group_members').select('user_id, users:user_id (id, username, avatar)').eq('group_id', groupId);
+        membersList = members || [];
+    }
+
+    // ========== جلب الرسائل (تحميل متقطع للأعلى) ==========
+    async function loadMessages(loadMore = false) {
+        if (isLoadingMore || !hasMore) return;
+        isLoadingMore = true;
+        let query = supabase
+            .from('group_messages')
+            .select('*, sender:sender_id (id, username, avatar)')
+            .eq('group_id', groupId)
+            .order('created_at', { ascending: false })
+            .limit(30);
+        if (loadMore && oldestCursor) {
+            query = query.lt('created_at', oldestCursor);
+        }
+        const { data, error } = await query;
+        if (error) {
+            console.error(error);
+            isLoadingMore = false;
+            return;
+        }
+        if (!data || data.length < 30) hasMore = false;
+        if (data.length > 0) {
+            oldestCursor = data[data.length - 1].created_at;
+            if (loadMore) {
+                messages = [...data.reverse(), ...messages];
+            } else {
+                messages = data.reverse();
+            }
+        } else {
+            hasMore = false;
+        }
+        renderMessages();
+        isLoadingMore = false;
+        if (!loadMore) {
+            scrollToBottom();
+        }
+    }
+
+    function renderMessages() {
+        // حفظ موضع التمرير الحالي لتحميل المزيد
+        const prevScrollHeight = messagesContainer.scrollHeight;
+        const prevScrollTop = messagesContainer.scrollTop;
+
+        let html = '';
+        if (hasMore) {
+            html += '<div class="load-more" id="loadMoreBtn">تحميل المزيد...</div>';
+        }
+        messages.forEach(msg => {
+            const isOwn = msg.sender_id === currentUser.id;
+            const senderName = msg.sender?.username || 'مستخدم';
+            const senderAvatar = msg.sender?.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg';
+            const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            html += `
+                <div class="message-item ${isOwn ? 'own' : 'other'}">
+                    <img src="${senderAvatar}" class="msg-avatar" onerror="this.src='https://randomuser.me/api/portraits/lego/1.jpg'">
+                    <div>
+                        <div class="msg-sender">${isOwn ? 'أنت' : senderName}</div>
+                        <div class="msg-content">
+                            <div class="msg-text">${escapeHtml(msg.text || '')}</div>
+                            ${msg.image ? `<img src="${msg.image}" class="msg-image" onclick="window.open('${msg.image}')">` : ''}
+                        </div>
+                        <div class="msg-time">${time}</div>
+                    </div>
+                </div>
+            `;
+        });
+        messagesContainer.innerHTML = html;
+        // إعادة ضبط موضع التمرير بعد إضافة رسائل قديمة
+        if (prevScrollHeight > 0) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight - prevScrollHeight + prevScrollTop;
+        }
+        // ربط زر تحميل المزيد
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', () => loadMessages(true));
+        }
+    }
+
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // ========== إرسال رسالة ==========
+    async function sendMessage() {
+        const text = messageInput.value.trim();
+        let imageFile = null;
+        if (window._selectedImageFile) {
+            imageFile = window._selectedImageFile;
+            window._selectedImageFile = null;
+        }
+        if (!text && !imageFile) return;
+        let imageUrl = null;
+        if (imageFile) {
+            const fileName = `group_msgs/${Date.now()}_${Math.random().toString(36)}.${imageFile.name.split('.').pop()}`;
+            const { data, error } = await supabase.storage.from('ramz-x-images').upload(fileName, imageFile);
+            if (error) {
+                showToast('فشل رفع الصورة');
+                return;
+            }
+            imageUrl = `https://zlkpoghjbqtnhzhmmdbw.supabase.co/storage/v1/object/public/ramz-x-images/${data.path}`;
+        }
+        const newMsg = {
+            group_id: groupId,
+            sender_id: currentUser.id,
+            text: text || '',
+            image: imageUrl || null,
+            created_at: new Date().toISOString()
+        };
+        const { error } = await supabase.from('group_messages').insert(newMsg);
+        if (!error) {
+            messageInput.value = '';
+            // لا داعي لإعادة تحميل كل الرسائل، سيتم الاستماع عبر realtime
+        }
+    }
+
+    // ========== تحميل صورة ==========
+    attachBtn.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                window._selectedImageFile = file;
+                showToast('تم اختيار الصورة، اضغط إرسال');
+            }
+        };
+        input.click();
+    });
+
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    // ========== Realtime اشتراك ==========
+    function subscribeToMessages() {
+        realtimeSubscription = supabase
+            .channel('group_messages:' + groupId)
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'group_messages',
+                filter: `group_id=eq.${groupId}`
+            }, (payload) => {
+                const newMsg = payload.new;
+                // إضافة الرسالة للقائمة مباشرة
+                const msgObj = {
+                    ...newMsg,
+                    sender: membersList.find(m => m.user_id === newMsg.sender_id)?.users || { username: 'مستخدم', avatar: '' }
+                };
+                messages.push(msgObj);
+                renderMessages();
+                if (newMsg.sender_id !== currentUser.id) {
+                    scrollToBottom();
+                }
+            })
+            .subscribe();
+    }
+
+    // ========== أعضاء المجموعة ==========
+    document.getElementById('membersBtn').addEventListener('click', () => {
+        let modal = document.createElement('div');
+        modal.className = 'members-modal';
+        modal.innerHTML = `
+            <div class="members-sheet">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h3>أعضاء المجموعة</h3>
+                    <i class="fas fa-times" style="cursor:pointer; font-size:20px;" onclick="this.closest('.members-modal').remove()"></i>
+                </div>
+                <div id="membersList"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        const list = modal.querySelector('#membersList');
+        membersList.forEach(member => {
+            const user = member.users;
+            list.innerHTML += `
+                <div class="member-item">
+                    <img src="${user?.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'}" style="width:36px;height:36px;border-radius:50%;">
+                    <span>${user?.username || 'مستخدم'}</span>
+                </div>
+            `;
+        });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    });
+
+    // ========== بدء التشغيل ==========
+    (async () => {
+        await initDB();
+        currentUser = await checkSession();
+        if (!currentUser) window.location.href = 'auth.html';
+        await initGroup();
+        await loadMessages();
+        subscribeToMessages();
+    })();
+
+    // تطبيق الثيم
+    if (localStorage.getItem('darkMode') === 'false') {
+        document.body.classList.add('light');
+    }
+</script>
+</body>
+</html>
