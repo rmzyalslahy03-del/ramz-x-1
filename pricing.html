@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>الاشتراكات | Ramz-X</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc; --surface: #fff; --surface2: #f1f5f9;
+            --text: #0f172a; --text2: #475569; --text3: #94a3b8;
+            --border: #cbd5e1; --accent: #ff0050; --accent2: #3b82f6;
+            --gold: #f59e0b; --radius: 24px; --shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+        body.dark {
+            --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
+            --text: #e2e8f0; --text2: #cbd5e1; --text3: #94a3b8; --border: #475569;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background:var(--bg); font-family:'Cairo',sans-serif; min-height:100vh;
+            padding-bottom:80px; color:var(--text); transition:background 0.3s;
+        }
+        .container { max-width:1100px; margin:0 auto; padding:20px; }
+
+        /* الهيدر */
+        .header {
+            display:flex; justify-content:space-between; align-items:center; padding:20px 0;
+        }
+        .logo {
+            font-size:1.8rem; font-weight:900;
+            background:linear-gradient(135deg, var(--accent2), var(--accent));
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        .header-actions { display:flex; gap:12px; align-items:center; }
+        .currency-toggle {
+            background:var(--surface2); border:1px solid var(--border); border-radius:30px;
+            padding:4px; display:flex; gap:4px;
+        }
+        .currency-option {
+            padding:6px 14px; border-radius:26px; border:none; background:transparent;
+            color:var(--text2); font-weight:600; cursor:pointer; transition:0.2s;
+        }
+        .currency-option.active { background:var(--accent2); color:#fff; }
+
+        /* البطاقة الرئيسية */
+        .hero {
+            text-align:center; padding:40px 0 20px;
+        }
+        .hero h1 { font-size:2.5rem; font-weight:800; margin-bottom:12px; }
+        .hero p { font-size:1.1rem; color:var(--text2); max-width:600px; margin:0 auto; }
+
+        /* المميزات العامة */
+        .features-strip {
+            display:flex; justify-content:center; gap:30px; flex-wrap:wrap;
+            padding:20px 0 40px; border-bottom:1px solid var(--border); margin-bottom:40px;
+        }
+        .feature-strip-item { display:flex; align-items:center; gap:8px; color:var(--text2); font-weight:600; }
+
+        /* الباقات */
+        .plans-grid {
+            display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
+            gap:24px; margin-bottom:40px;
+        }
+        .plan-card {
+            background:var(--surface); border-radius:var(--radius); padding:32px 24px;
+            border:1px solid var(--border); box-shadow:var(--shadow); transition:0.3s;
+            display:flex; flex-direction:column; position:relative;
+        }
+        .plan-card:hover { transform:translateY(-6px); box-shadow:0 20px 50px rgba(0,0,0,0.12); }
+        .plan-card.popular {
+            border-color:var(--accent); box-shadow:0 0 0 4px rgba(255,0,80,0.1);
+        }
+        .popular-badge {
+            position:absolute; top:-14px; right:20px; background:var(--accent); color:#fff;
+            padding:4px 16px; border-radius:20px; font-size:12px; font-weight:700;
+        }
+        .plan-name { font-size:1.5rem; font-weight:700; margin-bottom:8px; }
+        .plan-price { margin:16px 0; }
+        .plan-price .currency { font-size:1.2rem; vertical-align:top; }
+        .plan-price .amount { font-size:3rem; font-weight:900; }
+        .plan-price .period { color:var(--text3); font-size:0.9rem; }
+        .plan-desc { color:var(--text2); margin-bottom:20px; }
+        .plan-features { list-style:none; flex:1; }
+        .plan-features li { padding:8px 0; display:flex; align-items:center; gap:8px; }
+        .plan-features li i.fa-check { color:#10b981; }
+        .plan-features li i.fa-times { color:var(--text3); }
+        .btn {
+            display:block; width:100%; padding:14px; border-radius:30px; font-weight:700;
+            font-size:16px; text-align:center; cursor:pointer; border:none; transition:0.2s;
+            text-decoration:none; margin-top:20px;
+        }
+        .btn-primary { background:var(--accent2); color:#fff; }
+        .btn-outline { border:2px solid var(--accent2); color:var(--accent2); background:transparent; }
+        .btn-accent { background:var(--accent); color:#fff; }
+        .btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.15); }
+
+        /* جدول المقارنة */
+        .compare-table { width:100%; border-collapse:collapse; margin:40px 0; }
+        .compare-table th, .compare-table td {
+            padding:14px; border-bottom:1px solid var(--border); text-align:center;
+        }
+        .compare-table th { background:var(--surface2); font-weight:700; }
+        .compare-table td:first-child { text-align:right; font-weight:600; }
+
+        /* الأسئلة الشائعة */
+        .faq { max-width:700px; margin:40px auto; }
+        .faq h2 { text-align:center; margin-bottom:24px; }
+        .faq-item {
+            background:var(--surface); border:1px solid var(--border); border-radius:16px;
+            padding:16px; margin-bottom:12px; cursor:pointer;
+        }
+        .faq-question { font-weight:700; display:flex; justify-content:space-between; }
+        .faq-answer { margin-top:8px; color:var(--text2); display:none; }
+        .faq-item.open .faq-answer { display:block; }
+
+        /* شريط التنقل */
+        .bottom-footer {
+            position:fixed; bottom:0; left:0; right:0; background:var(--surface);
+            display:flex; justify-content:space-around; padding:8px 0;
+            border-top:1px solid var(--border); z-index:30;
+        }
+        .footer-button {
+            background:none; border:none; text-align:center; cursor:pointer;
+            color:var(--text2); text-decoration:none; transition:0.2s;
+        }
+        .footer-button:hover { color:var(--accent); }
+        .icon { font-size:22px; display:block; margin-bottom:4px; }
+        .label { font-size:11px; }
+
+        .toast {
+            position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+            background:var(--accent); color:#fff; padding:12px 24px; border-radius:30px;
+            z-index:3000; animation:fadeInUp 0.3s ease; font-weight:600; font-size:14px;
+        }
+        @keyframes fadeInUp {
+            from { opacity:0; transform:translateX(-50%) translateY(20px); }
+            to { opacity:1; transform:translateX(-50%) translateY(0); }
+        }
+    </style>
+</head>
+<body class="dark">
+
+<div class="container">
+    <div class="header">
+        <div class="logo" onclick="window.location.href='home.html'">Ramz-X</div>
+        <div class="header-actions">
+            <div class="currency-toggle" id="currencyToggle">
+                <button class="currency-option active" data-currency="usd">$ USD</button>
+                <button class="currency-option" data-currency="sar">﷼ SAR</button>
+                <button class="currency-option" data-currency="eur">€ EUR</button>
+            </div>
+            <button id="darkModeToggle" style="background:var(--surface2);border:1px solid var(--border);border-radius:50%;width:40px;height:40px;cursor:pointer;">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="hero">
+        <h1>اختر باقتك المثالية</h1>
+        <p>ابدأ مجاناً وارتقِ بتجربتك مع باقات تناسب احتياجاتك. جميع الباقات تشمل تحديثات مستمرة ودعماً فنياً.</p>
+    </div>
+
+    <div class="features-strip">
+        <div class="feature-strip-item"><i class="fas fa-shield-alt"></i> أمان كامل</div>
+        <div class="feature-strip-item"><i class="fas fa-sync-alt"></i> تحديثات مجانية</div>
+        <div class="feature-strip-item"><i class="fas fa-headset"></i> دعم فني</div>
+        <div class="feature-strip-item"><i class="fas fa-undo"></i> استرجاع خلال 7 أيام</div>
+    </div>
+
+    <div class="plans-grid" id="plansGrid">
+        <!-- سيتم بناؤها بواسطة JavaScript -->
+    </div>
+
+    <h2 style="text-align:center;margin-bottom:24px;">مقارنة شاملة</h2>
+    <div style="overflow-x:auto;">
+        <table class="compare-table">
+            <thead>
+                <tr><th>الميزة</th><th>مجاني</th><th>برو</th><th>مؤسسات</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>منشورات شهرياً</td><td>غير محدود</td><td>غير محدود</td><td>غير محدود</td></tr>
+                <tr><td>إحصائيات</td><td><i class="fas fa-times"></i></td><td><i class="fas fa-check"></i></td><td><i class="fas fa-check"></i></td></tr>
+                <tr><td>أولوية الظهور</td><td><i class="fas fa-times"></i></td><td><i class="fas fa-check"></i></td><td><i class="fas fa-check"></i></td></tr>
+                <tr><td>إزالة الإعلانات</td><td><i class="fas fa-times"></i></td><td><i class="fas fa-check"></i></td><td><i class="fas fa-check"></i></td></tr>
+                <tr><td>شارة مميزة</td><td><i class="fas fa-times"></i></td><td><i class="fas fa-check"></i></td><td><i class="fas fa-check"></i></td></tr>
+                <tr><td>دعم فني مباشر</td><td>بريد فقط</td><td>دردشة</td><td>دردشة + هاتف</td></tr>
+                <tr><td>API مخصص</td><td><i class="fas fa-times"></i></td><td><i class="fas fa-times"></i></td><td><i class="fas fa-check"></i></td></tr>
+                <tr><td>مدير حسابات</td><td><i class="fas fa-times"></i></td><td><i class="fas fa-times"></i></td><td><i class="fas fa-check"></i></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="faq">
+        <h2>أسئلة شائعة</h2>
+        <div class="faq-item">
+            <div class="faq-question">هل يمكنني الترقية في أي وقت؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">نعم، يمكنك الترقية أو تخفيض باقتك في أي وقت. سيتم احتساب الفرق تلقائياً.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">كيف يتم الدفع؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">نقبل جميع البطاقات الائتمانية والمدى و Apple Pay و STC Pay.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">هل هناك فترة تجربة مجانية؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">نعم، باقة Pro تأتي مع 14 يوم تجربة مجانية. يمكنك الإلغاء في أي وقت.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">هل يمكنني إلغاء الاشتراك؟ <i class="fas fa-chevron-down"></i></div>
+            <div class="faq-answer">بالتأكيد. يمكنك إلغاء الاشتراك من داخل إعدادات حسابك، وسيستمر حتى نهاية الدورة المدفوعة.</div>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-footer">
+    <a href="home.html" class="footer-button"><i class="fas fa-home icon"></i><div class="label">الرئيسية</div></a>
+    <a href="explore.html" class="footer-button"><i class="fas fa-compass icon"></i><div class="label">استكشاف</div></a>
+    <a href="create-post.html" class="footer-button"><i class="fas fa-plus-circle icon"></i><div class="label">إنشاء</div></a>
+    <a href="inbox.html" class="footer-button"><i class="fas fa-inbox icon"></i><div class="label">صندوق الوارد</div></a>
+    <a href="profile.html" class="footer-button"><i class="fas fa-user icon"></i><div class="label">الملف الشخصي</div></a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="common.js"></script>
+<script>
+    // ========== إعدادات العملات ==========
+    const plans = [
+        {
+            name: 'مجاني',
+            desc: 'للمبتدئين',
+            popular: false,
+            prices: { usd: 0, sar: 0, eur: 0 },
+            features: ['منشورات غير محدودة', 'تفاعلات أساسية', 'رسائل خاصة', 'تخزين 500 ميجا'],
+            excluded: ['إحصائيات متقدمة', 'أولوية ظهور', 'إزالة الإعلانات', 'شارة مميزة', 'API'],
+            btnText: 'ابدأ مجاناً',
+            btnClass: 'btn-outline',
+            link: 'auth.html'
+        },
+        {
+            name: 'Pro',
+            desc: 'الأكثر شعبية',
+            popular: true,
+            prices: { usd: 9.99, sar: 37, eur: 9.49 },
+            features: ['كل ميزات المجاني', 'إحصائيات متقدمة', 'أولوية ظهور', 'إزالة الإعلانات', 'شارة Pro مميزة', 'دعم دردشة مباشر', 'تخزين 5 جيجا'],
+            excluded: ['API مخصص', 'مدير حسابات'],
+            btnText: 'اشترك الآن',
+            btnClass: 'btn-accent',
+            link: '#',
+            trial: '14 يوم تجربة مجانية'
+        },
+        {
+            name: 'مؤسسات',
+            desc: 'للشركات',
+            popular: false,
+            prices: { usd: 49, sar: 184, eur: 47 },
+            features: ['كل ميزات Pro', 'API مخصص', 'مدير حسابات', 'دعم هاتفي 24/7', 'تخزين 50 جيجا', 'لوحة تحكم مخصصة', 'فريق عمل غير محدود'],
+            excluded: [],
+            btnText: 'تواصل معنا',
+            btnClass: 'btn-primary',
+            link: 'mailto:sales@ramz-x.com'
+        }
+    ];
+
+    let currentCurrency = 'usd';
+    const currencySymbols = { usd: '$', sar: '﷼', eur: '€' };
+
+    function renderPlans() {
+        const grid = document.getElementById('plansGrid');
+        grid.innerHTML = plans.map(p => {
+            const price = p.prices[currentCurrency];
+            const symbol = currencySymbols[currentCurrency];
+            return `
+            <div class="plan-card ${p.popular ? 'popular' : ''}">
+                ${p.popular ? '<div class="popular-badge">الأكثر شعبية</div>' : ''}
+                <div class="plan-name">${p.name}</div>
+                <div class="plan-desc">${p.desc}</div>
+                <div class="plan-price">
+                    <span class="currency">${symbol}</span>
+                    <span class="amount">${price}</span>
+                    <span class="period">/شهر</span>
+                </div>
+                ${p.trial ? `<div style="color:var(--accent);font-size:13px;margin-bottom:12px;">${p.trial}</div>` : ''}
+                <ul class="plan-features">
+                    ${p.features.map(f => `<li><i class="fas fa-check"></i> ${f}</li>`).join('')}
+                    ${p.excluded.map(f => `<li><i class="fas fa-times"></i> ${f}</li>`).join('')}
+                </ul>
+                <a href="${p.link}" class="btn ${p.btnClass}" onclick="${p.link === '#' ? `event.preventDefault();subscribe('${p.name}')` : ''}">${p.btnText}</a>
+            </div>`;
+        }).join('');
+    }
+
+    function subscribe(planName) {
+        showToast(`سيتم توجيهك لبوابة الدفع للاشتراك في ${planName}`);
+        // هنا يمكن ربط Stripe أو Paddle
+    }
+
+    function showToast(msg) {
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    }
+
+    // ========== تبديل العملة ==========
+    document.querySelectorAll('.currency-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.currency-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCurrency = btn.dataset.currency;
+            renderPlans();
+        });
+    });
+
+    // ========== FAQ ==========
+    document.querySelectorAll('.faq-item').forEach(item => {
+        item.addEventListener('click', () => {
+            item.classList.toggle('open');
+        });
+    });
+
+    // ========== Dark mode ==========
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        document.body.classList.toggle('light');
+        const icon = document.querySelector('#darkModeToggle i');
+        icon.className = document.body.classList.contains('dark') ? 'fas fa-sun' : 'fas fa-moon';
+        localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+    });
+
+    // ========== بدء التشغيل ==========
+    renderPlans();
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark');
+        document.body.classList.remove('light');
+        document.querySelector('#darkModeToggle i').className = 'fas fa-sun';
+    } else {
+        document.body.classList.remove('dark');
+        document.body.classList.add('light');
+    }
+
+    console.log('✅ pricing.html جاهز - Ramz-X');
+</script>
+</body>
+</html>
